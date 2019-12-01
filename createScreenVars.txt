@@ -1,0 +1,32 @@
+ProducScreen:
+name String;
+newCode String;
+mang String;
+tuoi String;
+mau String;
+minsize Integer;
+maxsize Integer;
+newImg String;
+size Size[];
+description String;
+---------------------------
+PaymentScreen:
+payment_id Integer;
+userId Integer;
+status String;
+voucher String;
+note String;
+ship String;
+type String;
+name String;
+phone String;
+address String;
+productSizes Size[];
+amount Integer[];
+---------------------------
+SetUpScreen:
+phuongthucvanchuyen String;
+phuongthucthanhtoan String;
+freeship Integer;
+shipDefault Integer;
+treefolders Map<TreeFolder,List<Category>;
