@@ -14,7 +14,7 @@
 	<version>0.0.1</version>
 
 	<groupId>com.lhc.jerseyguice</groupId>
-	<artifactId>jerseyguice</artifactId>
+	<artifactId>jerseyguice-pmh</artifactId>
 
 	<properties>
 		<appengine.version>1.9.46</appengine.version>

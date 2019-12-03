@@ -63,7 +63,7 @@ public class JWTUtil {
     
     public static boolean isValidAdminUser(Claims claims) {
     	if(claims.getIssuer().equals("LienHoaCac")) {
-    		if (Integer.parseInt(claims.getId()) == 1) {
+    		if (Integer.parseInt(claims.getSubject()) == 1) {
     			return true;
     		}
     	}
@@ -72,7 +72,7 @@ public class JWTUtil {
     
     public static boolean isValidUser(Claims claims) {
     	if(claims.getIssuer().equals("LienHoaCac")) {
-    		if (Integer.parseInt(claims.getId()) == 2) {
+    		if (Integer.parseInt(claims.getSubject()) == 2) {
     			return true;
     		}
     	}
