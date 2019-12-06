@@ -35,17 +35,17 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
 			ps.setString(2, catName.replace("-", " "));
-			ps.setInt(3, (Integer.parseInt(page)-1)*12 );
+			ps.setInt(3, (Integer.parseInt(page) - 1) * 12);
 			ResultSet rs = ps.executeQuery();
-			
-			while (rs.next()){
+
+			while (rs.next()) {
 				CategoryScreen catScreen = new CategoryScreen();
 				catScreen.setCatId(rs.getInt("cat_id"));
 				catScreen.setName(rs.getString("name"));
 				catScreen.setProductId(rs.getInt("product_id"));
 				catScreen.setPrice(rs.getString("price"));
 				catScreen.setDiscountPrice(rs.getString("discount"));
-				if((Integer.parseInt(Util.getCurrentDate()) - Integer.parseInt(rs.getString("create_time"))) < 100){
+				if ((Integer.parseInt(Util.getCurrentDate()) - Integer.parseInt(rs.getString("create_time"))) < 100) {
 					catScreen.setNew(true);
 				} else {
 					catScreen.setNew(false);
@@ -70,8 +70,7 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 	@Override
 	public Map getCartBy(String userId) {
 		StringBuilder sql = new StringBuilder("");
-		sql.append(
-				" select c.user_id,c.product_id,c.amount,c.payment_id,c.create_time,c.name,c.size,c.code,  ");
+		sql.append(" select c.user_id,c.product_id,c.amount,c.payment_id,c.create_time,c.name,c.size,c.code,  ");
 		sql.append(" (select price from size where product_id = c.product_id and size = c.size) as price, ");
 		sql.append(" (select disct_price from size where product_id = c.product_id and size = c.size ");
 		sql.append(" and expired_time <= ?) as disct_price ");
@@ -83,9 +82,9 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
-			ps.setString(2,userId);
+			ps.setString(2, userId);
 			ResultSet rs = ps.executeQuery();
-			
+
 			while (rs.next()) {
 				Cart cart = new Cart();
 				cart.setAmount(rs.getInt("amount"));
@@ -99,13 +98,77 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 				cart.setSize(rs.getString("size"));
 				cart.setUser_id(Integer.parseInt(userId));
 				List<Cart> carts = new ArrayList<>();
-				if(map.containsKey(rs.getString("name").trim())) {
-					 carts = map.get(rs.getString("name").trim());
+				if (map.containsKey(rs.getString("name").trim())) {
+					carts = map.get(rs.getString("name").trim());
 				}
 				carts.add(cart);
 				map.put(rs.getString("name").trim(), carts);
 			}
-			
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				ps.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return map;
+	}
+
+	@Override
+	public Map getCartBy(String[] cartDetail) {
+		StringBuilder sql = new StringBuilder("");
+
+		sql.append(" select c.product_id,c.create_time,p.name,c.size,c.code,c.price, ");
+		sql.append(" (select disct_price from size where product_id = c.product_id and size = c.size ");
+		sql.append(" and expired_time <= 20190112) as disct_price ");
+		sql.append(" from size c left join product p on c.product_id = p.product_id ");
+		sql.append(" where ");
+		List<String> conditions = new ArrayList<>();
+		for (String read: cartDetail) {
+			conditions.add("(c.product_id = "+read.split(";")[0]+ " and c.size = '" +read.split(";")[1]+"')");
+		}
+		sql.append(String.join(" or ", conditions));
+		sql.append(" order by c.product_id");
+		PreparedStatement ps = null;
+		PaymentScreen paymentScreen = new PaymentScreen();
+		Map<String, List<Cart>> map = new HashMap<String, List<Cart>>();
+		try {
+			ps = getConnection().prepareStatement(sql.toString());
+			ps.setString(1, Util.getCurrentDate());
+			// ps.setString(2,userId);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				Cart cart = new Cart();
+				
+				cart.setCode(rs.getString("code"));
+				cart.setCreate_time(rs.getInt("create_time"));
+				cart.setDisct_price(rs.getDouble("disct_price"));
+				cart.setName(rs.getString("name"));
+				cart.setPayment_id(0);
+				cart.setPrice(rs.getDouble("price"));
+				cart.setProduct_id(rs.getInt("product_id"));
+				cart.setSize(rs.getString("size"));
+				for (String read : cartDetail) {
+					if (read.contains(cart.getProduct_id()+";"+cart.getSize())){
+						cart.setAmount(Integer.parseInt(read.split(";")[2]));
+						break;
+					}
+				}
+				
+				List<Cart> carts = new ArrayList<>();
+				if (map.containsKey(rs.getString("name").trim())) {
+					carts = map.get(rs.getString("name").trim());
+				}
+				carts.add(cart);
+				map.put(rs.getString("name").trim(), carts);
+			}
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

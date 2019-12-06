@@ -116,24 +116,24 @@ public class ProductService {
 		size.setProduct_id(product.getProduct_id());
 		List<Size> sizes = dao.findByKey(size);
 		String description = "";
-		for(String descId : product.getDescription().split(",")){
+		for (String descId : product.getDescription().split(",")) {
 			Description desc = new Description();
 			desc.setDescription_id(Integer.parseInt(descId));
 			List<Description> listDesc = dao.findByKey(desc);
-			if(!listDesc.isEmpty()){
+			if (!listDesc.isEmpty()) {
 				desc = listDesc.get(0);
 				description += desc.getDescription();
 			}
 		}
 		product.setImage(getImagesUrl(product.getImage()));
 		Map<String, Object> map = new HashMap<>();
-		map.put("product",product);
-		map.put("sizes",sizes);
-		map.put("thuoctinh",thuoctinh);
-		map.put("description",description);
+		map.put("product", product);
+		map.put("sizes", sizes);
+		map.put("thuoctinh", thuoctinh);
+		map.put("description", description);
 		return Util.toJSONString(map);
 	}
-	
+
 	@GET
 	@Path("/get-by-category/{cat-name}/{page}")
 	public String getProductByCategory(@PathParam("cat-name") String catName, @PathParam("page") String page) {
@@ -141,8 +141,8 @@ public class ProductService {
 		Gson gson = new Gson();
 		Category category = new Category();
 		category.setCat_name(catName);
-		List<CategoryScreen> list = dao.getProductByCategoryName(catName,page);
-		if(!list.isEmpty()){
+		List<CategoryScreen> list = dao.getProductByCategoryName(catName, page);
+		if (!list.isEmpty()) {
 			list = list.stream().map(item -> {
 				item.setImage(getImagesUrl(item.getImage()).split(";")[0]);
 				return item;
@@ -150,42 +150,44 @@ public class ProductService {
 			object.put("categoryscreen", list);
 			return gson.toJson(list);
 		}
-		
+
 		return "203";
 	}
 
-	public String getImagesUrl (String folderId) {
+	public String getImagesUrl(String folderId) {
 		List<String> ImagesUrl = new ArrayList<>();
 		org.jsoup.nodes.Document doc = null;
 		try {
-			doc = Jsoup.connect("https://drive.google.com/drive/folders/"+folderId).get();
+			doc = Jsoup.connect("https://drive.google.com/drive/folders/" + folderId).get();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
-			System.out.println("can't fetch from "+ folderId);
+			System.out.println("can't fetch from " + folderId);
 		}
 		String title = doc.title();
 		for (Element read : doc.getElementsByTag("script")) {
-			if (read.toString().contains("\\x5b\\x22"+folderId+"\\x22\\x5d")) {
+			if (read.toString().contains("\\x5b\\x22" + folderId + "\\x22\\x5d")) {
 				List<String> list = new ArrayList<String>();
 				String[] element = read.toString().split(",");
 				IntStream.range(0, Arrays.asList(element).size() - 1).forEach(i -> {
-					if (element[i].contains("\\x5b\\x22"+folderId+"\\x22\\x5d")) {
-						list.add(element[i-1]);
+					if (element[i].contains("\\x5b\\x22" + folderId + "\\x22\\x5d")) {
+						list.add(element[i - 1]);
 					}
 				});
 				for (String read2 : list) {
 					try {
 						System.out.println(read2);
-						String url = "https://drive.google.com/uc?export=view&id="+read2.substring(read2.lastIndexOf("\\x5b\\x22"), read2.lastIndexOf("\\x22")).replace("\\x5b\\x22", "").replace("\\x22", "");
-						
-						System.out.println(url+";");
+						String url = "https://drive.google.com/uc?export=view&id="
+								+ read2.substring(read2.lastIndexOf("\\x5b\\x22"), read2.lastIndexOf("\\x22"))
+										.replace("\\x5b\\x22", "").replace("\\x22", "");
+
+						System.out.println(url + ";");
 						System.out.println("------------------------");
 						ImagesUrl.add(url);
 					} catch (StringIndexOutOfBoundsException e) {
 						// TODO: handle exception
 						continue;
 					}
-					
+
 				}
 
 				break;
@@ -194,6 +196,7 @@ public class ProductService {
 		}
 		return String.join(";", ImagesUrl);
 	}
+
 	@POST
 	@Path("/image")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -203,11 +206,16 @@ public class ProductService {
 		String UPLOAD_PATH = "";
 		try {
 
-			String body = new BufferedReader(new InputStreamReader(uploadedInputStream,Charsets.UTF_8)).lines()/*.filter(line -> {
-		        	
-		        	return !line.startsWith("Content-Type")&&!line.startsWith("------WebKitFormBoundary")&&!line.startsWith("Content-Disposition");
-		        })*/.collect(Collectors.joining("\n")).trim();
-			Image image = ImageIO.read(new URL("https://drive.google.com/file/d/1LUutB-ujCPnl0hN4BmvWFtMrt8_dX3_3/view"));
+			String body = new BufferedReader(new InputStreamReader(uploadedInputStream, Charsets.UTF_8))
+					.lines()/*
+							 * .filter(line -> {
+							 * 
+							 * return !line.startsWith("Content-Type")&&!line.
+							 * startsWith("------WebKitFormBoundary")&&!line.
+							 * startsWith("Content-Disposition"); })
+							 */.collect(Collectors.joining("\n")).trim();
+			Image image = ImageIO
+					.read(new URL("https://drive.google.com/file/d/1LUutB-ujCPnl0hN4BmvWFtMrt8_dX3_3/view"));
 
 			BufferedImage bi = this.createResizedCopy(image, 180, 180, true);
 			ImageIO.write(bi, "jpg", new File(fileDetail.getFileName()));
@@ -252,38 +260,37 @@ public class ProductService {
 	@Path("/{catName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String create(String content, @Context HttpServletResponse response, @Context HttpServletRequest request,@PathParam("catName") String catName) {
+	public String create(String content, @Context HttpServletResponse response, @Context HttpServletRequest request,
+			@PathParam("catName") String catName) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
 		Category cat = new Category();
 		cat.setCat_name(catName.replace("-", " "));
 		List<Category> cats = dao.findByKey(cat);
-		if(cats.isEmpty()) {
+		if (cats.isEmpty()) {
 			return "203";
 		} else {
 			Product product = new Product();
 			product = (Product) dao.parseFromJSONToObject(content, product);
 			product.setCat_id(cats.get(0).getCat_id());
 			final AtomicInteger atomicInteger = new AtomicInteger(0);
-			Collection<String> result = product.getDescription().chars()
-			                                    .mapToObj(c -> String.valueOf((char)c) )
-			                                    .collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000
-			                                                                ,Collectors.joining()))
-			                                    .values();
+			Collection<String> result = product.getDescription().chars().mapToObj(c -> String.valueOf((char) c))
+					.collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000, Collectors.joining()))
+					.values();
 			String descriptionGeneratedId = "";
-			for(String read : result ){
+			for (String read : result) {
 				Description description = new Description();
 				description.setDescription(read);
 				descriptionGeneratedId += dao.addThenReturnId(description) + ",";
 			}
-			 product.setDescription(descriptionGeneratedId);
-			 product.setCreate_time(Integer.parseInt(Util.getCurrentDate()));
+			product.setDescription(descriptionGeneratedId);
+			product.setCreate_time(Integer.parseInt(Util.getCurrentDate()));
 			Thuoctinh thuoctinh = new Thuoctinh();
 			thuoctinh = (Thuoctinh) dao.parseFromJSONToObject(content, thuoctinh);
 			List<Size> sizes = dao.parseFromJSONToListOfObject(content, new Size());
 			String generatedProductId = dao.addThenReturnId(product);
-			
-			for(Size read : sizes){
+
+			for (Size read : sizes) {
 				read.setProduct_id(Integer.parseInt(generatedProductId));
 				read.setCreate_time(Integer.parseInt(Util.getCurrentDate()));
 				dao.add(read);
@@ -291,41 +298,40 @@ public class ProductService {
 			thuoctinh.setProduct_id(Integer.parseInt(generatedProductId));
 			dao.add(thuoctinh);
 		}
-		
 
 		return "200";
 	}
+
 	@POST
 	@Path("edit/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String edit(String content, @Context HttpServletResponse response, @Context HttpServletRequest request,@PathParam("token") String token) {
+	public String edit(String content, @Context HttpServletResponse response, @Context HttpServletRequest request,
+			@PathParam("token") String token) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
 		Claims claims = JWTUtil.decodeJWT(token);
-		if(!JWTUtil.isValidAdminUser(claims)) {
+		if (!JWTUtil.isValidAdminUser(claims)) {
 			return "203";
 		} else {
 			Product product = new Product();
 			product = (Product) dao.parseFromJSONToObject(content, product);
 			final AtomicInteger atomicInteger = new AtomicInteger(0);
-			Collection<String> result = product.getDescription().chars()
-			                                    .mapToObj(c -> String.valueOf((char)c) )
-			                                    .collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000
-			                                                                ,Collectors.joining()))
-			                                    .values();
+			Collection<String> result = product.getDescription().chars().mapToObj(c -> String.valueOf((char) c))
+					.collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000, Collectors.joining()))
+					.values();
 			Product existingProduct = new Product();
 			existingProduct.setProduct_id(product.getProduct_id());
 			List<Product> existingProducts = dao.findByKey(existingProduct);
 			existingProduct = existingProducts.get(0);
-			for(String read : existingProduct.getDescription().split(",") ){
+			for (String read : existingProduct.getDescription().split(",")) {
 				Description description = new Description();
 				description.setDescription_id(Integer.parseInt(read));
 				dao.deleteByKey(description);
 			}
-			
+
 			String descriptionGeneratedId = "";
-			for(String read : result ){
+			for (String read : result) {
 				Description description = new Description();
 				description.setDescription(read);
 				descriptionGeneratedId += dao.addThenReturnId(description) + ",";
@@ -334,11 +340,11 @@ public class ProductService {
 			Thuoctinh thuoctinh = new Thuoctinh();
 			thuoctinh = (Thuoctinh) dao.parseFromJSONToObject(content, thuoctinh);
 			List<Size> sizes = dao.parseFromJSONToListOfObject(content, new Size());
-			
+
 			dao.updateByInputKey(product, Arrays.asList("product_id"));
-			
-			for(Size read : sizes){
-				if (dao.updateByInputKey(read, Arrays.asList("product_id","size")) == 0) {
+
+			for (Size read : sizes) {
+				if (dao.updateByInputKey(read, Arrays.asList("product_id", "size")) == 0) {
 					read.setProduct_id(product.getProduct_id());
 					read.setCreate_time(Integer.parseInt(Util.getCurrentDate()));
 					dao.add(read);
@@ -346,10 +352,10 @@ public class ProductService {
 			}
 			dao.updateByInputKey(thuoctinh, Arrays.asList("product_id"));
 		}
-		
 
 		return "200";
 	}
+
 	@GET
 	@Path("check/{productName}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -364,18 +370,19 @@ public class ProductService {
 			return "true";
 		}
 	}
-	
+
 	@GET
 	@Path("add-cart/{productId}/{size}/{quantity}/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String addCart(@PathParam("productId") String productId,@PathParam("size") String size,
-			@PathParam("quantity") String quantity,@PathParam("token") String token, @Context HttpServletResponse response) {
+	public String addCart(@PathParam("productId") String productId, @PathParam("size") String size,
+			@PathParam("quantity") String quantity, @PathParam("token") String token,
+			@Context HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		Cart cart = new Cart();
 		Product product = new Product();
 		Claims claims = JWTUtil.decodeJWT(token);
-		if(claims.getIssuer().equals("LienHoaCac")){
+		if (claims.getIssuer().equals("LienHoaCac")) {
 			cart.setUser_id(Integer.parseInt(claims.getId()));
 			product.setProduct_id(Integer.parseInt(productId));
 			List<Product> produtcs = dao.findByKey(product);
@@ -388,24 +395,23 @@ public class ProductService {
 				cart.setPayment_id(0);
 				List<Cart> list = dao.findByKey(cart);
 				try {
-					if (list.isEmpty()){
+					if (list.isEmpty()) {
 						cart.setAmount(Integer.parseInt(quantity));
 						dao.add(cart);
 					} else {
-						cart.setAmount(list.get(0).getAmount()+Integer.parseInt(quantity));
-						dao.updateByInputKey(cart, Arrays.asList("user_id","product_id","size","payment_id"));
+						cart.setAmount(list.get(0).getAmount() + Integer.parseInt(quantity));
+						dao.updateByInputKey(cart, Arrays.asList("user_id", "product_id", "size", "payment_id"));
 					}
-					
+
 				} catch (Exception e) {
 					return "203";
 				}
 			}
-			
+
 		} else {
 			return "203";
 		}
-		
-		
+
 		return "200";
 	}
 
@@ -423,7 +429,7 @@ public class ProductService {
 			return "true";
 		}
 	}
-	
+
 	@GET
 	@Path("get-cart/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -434,7 +440,7 @@ public class ProductService {
 		cart.setPayment_id(0);
 		Claims claims = JWTUtil.decodeJWT(token);
 		JsonObject jsonObject = new JsonObject();
-		if(claims.getIssuer().equals("LienHoaCac")){
+		if (claims.getIssuer().equals("LienHoaCac")) {
 			cart.setUser_id(Integer.parseInt(claims.getId()));
 			jsonObject.addProperty("message", "200");
 			jsonObject.addProperty("itemInCart", dao.findByKey(cart).size());
@@ -444,20 +450,32 @@ public class ProductService {
 		jsonObject.addProperty("message", "203");
 		return jsonObject.toString();
 	}
-	
+
 	@GET
 	@Path("get-cart-detail/{token}")
-	public Map<String, List<Cart>> getCartDetail(@PathParam("token") String token, @Context HttpServletResponse response) {
+	public Map<String, List<Cart>> getCartDetail(@PathParam("token") String token,
+			@Context HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		Cart cart = new Cart();
 		cart.setPayment_id(0);
 		Claims claims = JWTUtil.decodeJWT(token);
 		JsonObject jsonObject = new JsonObject();
-		if(claims.getIssuer().equals("LienHoaCac")){
+		if (claims.getIssuer().equals("LienHoaCac")) {
 			return dao.getCartBy(claims.getId());
 		}
 		jsonObject.addProperty("message", "203");
 		return null;
+	}
+
+	@GET
+	@Path("get-cart-detail-not-login/{cart}")
+	public Map<String, List<Cart>> getCartDetailNotLogin(@PathParam("cart") String cartInfo,
+			@Context HttpServletResponse response) {
+		response.addHeader("Access-Control-Allow-Origin", "*");
+		Cart cart = new Cart();
+		cart.setPayment_id(0);
+		JsonObject jsonObject = new JsonObject();
+		return dao.getCartBy(cartInfo.split("|"));
 	}
 
 	@DELETE
@@ -480,22 +498,20 @@ public class ProductService {
 		gson.fromJson(content, Product.class);
 		product = (Product) dao.parseFromJSONToObject(content, product);
 		final AtomicInteger atomicInteger = new AtomicInteger(0);
-		Collection<String> result = product.getDescription().chars()
-		                                    .mapToObj(c -> String.valueOf((char)c) )
-		                                    .collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000
-		                                                                ,Collectors.joining()))
-		                                    .values();
+		Collection<String> result = product.getDescription().chars().mapToObj(c -> String.valueOf((char) c))
+				.collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000, Collectors.joining()))
+				.values();
 		String descriptionGeneratedId = "";
-		for(String read : result ){
+		for (String read : result) {
 			Description description = new Description();
 			description.setDescription(read);
 			descriptionGeneratedId += dao.addThenReturnId(description) + ",";
 		}
-		 product.setDescription(descriptionGeneratedId);
+		product.setDescription(descriptionGeneratedId);
 		Thuoctinh thuoctinh = new Thuoctinh();
 		thuoctinh = (Thuoctinh) dao.parseFromJSONToObject(content, thuoctinh);
 		List<Size> sizes = dao.parseFromJSONToListOfObject(content, new Size());
-		
+
 		List<String> conditions = new ArrayList<>();
 		conditions.add("product_id");
 		dao.updateByInputKey(product, conditions);

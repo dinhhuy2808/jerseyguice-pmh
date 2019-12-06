@@ -86,7 +86,7 @@ public class PaymentService {
 			if (payment.getTitle() == null) {
 				payment.setTitle("PMH00000001");
 			} else {
-				int count = Integer.parseInt(payment.getTitle().replace("LHC", ""));
+				int count = Integer.parseInt(payment.getTitle().replace("PMH", ""));
 				payment.setTitle("PMH"+String.format("%08d", count+1));
 			}
 			if(payment != null){
@@ -155,6 +155,18 @@ public class PaymentService {
 		return null;
 	}
 
+	@GET
+	@Path("get-payments/{token}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public List<Payment> getPayments(@PathParam("token") String token) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		Payment payment = new Payment();
+		if (JWTUtil.isValidUser(claims)){
+			payment.setUser_id(Integer.parseInt(claims.getSubject()));
+		}
+		return dao.findByKey(payment);
+	}
+	
 	@POST
 	@Path("{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -190,6 +202,9 @@ public class PaymentService {
 			payment.setTotal(paymentScreen.getTotal() + paymentScreen.getShipfee());
 			payment.setUser_id(Integer.parseInt(claims.getId()));
 			payment.setVoucher(paymentScreen.getVoucher());
+			payment.setTinhthanh(paymentScreen.getTinhthanh());
+			payment.setQuanhuyen(paymentScreen.getQuanhuyen());
+			payment.setHinhthuc(paymentScreen.getHinhthuc());
 			
 			String paymentId = dao.addThenReturnId(payment);
 			for (Cart cart : paymentScreen.getCarts()){
