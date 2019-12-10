@@ -116,8 +116,8 @@ public class UserService {
 		User user = (User) dao.parseFromJSONToObject(content, new User());
 		String hashedPassword = getMd5(user.getPassword());
 		user.setPassword(hashedPassword);
-		dao.add(user);
-		return "200";
+		String userId = dao.addThenReturnId(user);
+		return userId;
 	}
 
 	@POST

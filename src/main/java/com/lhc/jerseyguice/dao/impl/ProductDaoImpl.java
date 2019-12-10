@@ -125,7 +125,7 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 
 		sql.append(" select c.product_id,c.create_time,p.name,c.size,c.code,c.price, ");
 		sql.append(" (select disct_price from size where product_id = c.product_id and size = c.size ");
-		sql.append(" and expired_time <= 20190112) as disct_price ");
+		sql.append(" and expired_time <= ?) as disct_price ");
 		sql.append(" from size c left join product p on c.product_id = p.product_id ");
 		sql.append(" where ");
 		List<String> conditions = new ArrayList<>();

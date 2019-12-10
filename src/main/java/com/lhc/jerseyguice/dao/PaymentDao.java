@@ -5,4 +5,5 @@ import com.lhc.jerseyguice.screenvars.PaymentScreen;
 
 public interface PaymentDao<T> extends Dao<T> {
 	PaymentScreen getPaymentDetailForCheckOut (int userId);
+	PaymentScreen getPaymentDetailForCheckOutNotLogin (String[] cartDetail);
 }

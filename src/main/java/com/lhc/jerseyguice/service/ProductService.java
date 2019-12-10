@@ -467,15 +467,15 @@ public class ProductService {
 		return null;
 	}
 
-	@GET
-	@Path("get-cart-detail-not-login/{cart}")
-	public Map<String, List<Cart>> getCartDetailNotLogin(@PathParam("cart") String cartInfo,
+	@POST
+	@Path("get-cart-detail-not-login")
+	public Map<String, List<Cart>> getCartDetailNotLogin(String cartInfo,
 			@Context HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		Cart cart = new Cart();
 		cart.setPayment_id(0);
 		JsonObject jsonObject = new JsonObject();
-		return dao.getCartBy(cartInfo.split("|"));
+		return dao.getCartBy(cartInfo.split("\\|"));
 	}
 
 	@DELETE
