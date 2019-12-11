@@ -187,7 +187,7 @@ public class PaymentService {
 		Claims claims = JWTUtil.decodeJWT(token);
 		Payment payment = new Payment();
 		if (JWTUtil.isValidUser(claims)) {
-			payment.setUser_id(Integer.parseInt(claims.getSubject()));
+			payment.setUser_id(Integer.parseInt(claims.getId()));
 		}
 		return dao.findByKey(payment);
 	}

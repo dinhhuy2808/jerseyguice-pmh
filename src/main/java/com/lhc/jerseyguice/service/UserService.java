@@ -109,15 +109,52 @@ public class UserService {
 		}
 	}
 
+	@GET
+	@Path("/check-payment/{phone}")
+	public boolean checkPayment(@PathParam("phone") String phone) {
+		User user = new User();
+		user.setPhone(phone);
+		List<User> list = dao.findByKey(user);
+		if (list.size() > 0 && !list.get(0).getPassword().equals("")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	@GET
+	@Path("/isAdmin/{token}")
+	public boolean isAdmin(@PathParam("token") String token) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		if(JWTUtil.isValidAdminUser(claims)){
+			return true;
+		} 
+		return false;
+	}
+	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String create(String content) {
 		User user = (User) dao.parseFromJSONToObject(content, new User());
-		String hashedPassword = getMd5(user.getPassword());
-		user.setPassword(hashedPassword);
-		String userId = dao.addThenReturnId(user);
-		return userId;
+		if (!user.getPassword().trim().equals("")){
+			String hashedPassword = getMd5(user.getPassword());
+			user.setPassword(hashedPassword);
+		}
+		
+		User tempUser =  new User();
+		tempUser.setPhone(user.getPhone());
+		List<User> list = dao.findByKey(tempUser);
+		
+		if (list.size() > 0  ){
+			if (list.get(0).getPassword().equals("")) {
+				dao.updateByInputKey(user, Arrays.asList("phone"));
+				return String.valueOf(list.get(0).getUser_id());
+			}
+		} else {
+			String userId = dao.addThenReturnId(user);
+			return userId;
+		}
+		return null;
 	}
 
 	@POST

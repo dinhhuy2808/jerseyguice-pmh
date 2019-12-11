@@ -103,8 +103,8 @@ public class ProductService {
 	ProductDao dao;
 
 	@GET
-	@Path("/{product-name}")
-	public String getProduct(@PathParam("product-name") String name) {
+	@Path("/{product-name}/{purpose}")
+	public String getProduct(@PathParam("product-name") String name,@PathParam("purpose") String purpose) {
 		JsonObject jsonObject = new JsonObject();
 		Product product = new Product();
 		product.setName(name.replace("-", " "));
@@ -125,7 +125,10 @@ public class ProductService {
 				description += desc.getDescription();
 			}
 		}
-		product.setImage(getImagesUrl(product.getImage()));
+		if (purpose.equals("detail")) {
+			product.setImage(getImagesUrl(product.getImage()));
+		}
+		
 		Map<String, Object> map = new HashMap<>();
 		map.put("product", product);
 		map.put("sizes", sizes);
@@ -344,6 +347,7 @@ public class ProductService {
 			dao.updateByInputKey(product, Arrays.asList("product_id"));
 
 			for (Size read : sizes) {
+				read.setProduct_id(product.getProduct_id());
 				if (dao.updateByInputKey(read, Arrays.asList("product_id", "size")) == 0) {
 					read.setProduct_id(product.getProduct_id());
 					read.setCreate_time(Integer.parseInt(Util.getCurrentDate()));
