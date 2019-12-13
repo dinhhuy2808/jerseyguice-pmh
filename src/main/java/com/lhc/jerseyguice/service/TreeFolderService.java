@@ -157,4 +157,57 @@ public class TreeFolderService {
 
 		return "200";
 	}
+	@GET
+	@Path("check-cat-name/{name}/{token}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String checkCatName(@PathParam("token") String token,@PathParam("name") String name) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		if(JWTUtil.isValidAdminUser(claims)){
+			Category cat = new Category();
+			cat.setCat_name(name);
+			if (dao.findByKey(cat).size() > 0) {
+				return "exist";
+			}
+		} else {
+			return "203";
+		}
+		return "200";
+	}
+	
+	@PUT
+	@Path("update-cat-name/{token}/{treeName}/{catName}/{newCatName}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String updateCatName(@PathParam("token") String token, @PathParam("catName") String catName,
+			@PathParam("newCatName") String newCatName,@PathParam("treeName") String treeName) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		if(JWTUtil.isValidAdminUser(claims)){
+			Category cat = new Category();
+			Gson gson = new Gson();
+			if (!checkCatName(token,newCatName).equals("exist")) {
+				dao.updateCatName(treeName, catName, newCatName);
+			}
+		} else {
+			return "203";
+		}
+		return "200";
+	}
+	
+	@PUT
+	@Path("update-index/{token}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String updateIndex(String content,@PathParam("token") String token) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		if(JWTUtil.isValidAdminUser(claims)){
+			Treefolder tree = new Treefolder();
+			Gson gson = new Gson();
+			tree = gson.fromJson(content, Treefolder.class);
+			dao.updateByInputKey(tree, Arrays.asList("folder_name"));
+		} else {
+			return "203";
+		}
+		return "200";
+	}
 }

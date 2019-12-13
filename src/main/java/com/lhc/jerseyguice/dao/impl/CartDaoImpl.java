@@ -18,7 +18,7 @@ public class CartDaoImpl extends DataAccessObjectImpl<Cart> implements CartDao {
 	public void updatePayment(Cart cart, int paymentId) {
 		StringBuilder sql = new StringBuilder("update cart set payment_id = ?, disct_price = ?, price = ? "
 				+ ", amount = ? where payment_id = 0 and user_id = ? "
-				+ "and product_id = ?");
+				+ "and product_id = ? and size = ?");
 		
 		PreparedStatement ps = null;
 		int total = 0;
@@ -30,6 +30,7 @@ public class CartDaoImpl extends DataAccessObjectImpl<Cart> implements CartDao {
 			ps.setInt(4, cart.getAmount());
 			ps.setInt(5, cart.getUser_id());
 			ps.setInt(6, cart.getProduct_id());
+			ps.setString(7, cart.getSize());
 			int result = ps.executeUpdate();
 			
 		} catch (SQLException e) {

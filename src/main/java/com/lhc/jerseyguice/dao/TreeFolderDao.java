@@ -21,4 +21,5 @@ import java.util.Map;
 
 public interface TreeFolderDao<T> extends Dao<T> {
 	Map<String, List<String>> getTreefolderDetail();
+	void updateCatName(String treeName, String catName, String newCatName);
 }

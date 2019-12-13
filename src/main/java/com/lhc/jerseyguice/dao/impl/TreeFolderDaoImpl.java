@@ -58,4 +58,27 @@ public class TreeFolderDaoImpl extends DataAccessObjectImpl<Treefolder> implemen
 		}
 		return map;
 	}
+	
+	@Override
+	public void updateCatName(String treeName, String catName, String newCatName){
+		String sql = "UPDATE CATEGORY SET CAT_NAME = ? WHERE CAT_NAME = ? AND FOLDER_ID = (SELECT FOLDER_ID FROM TREEFOLDER WHERE FOLDER_NAME = ?)";
+		PreparedStatement ps = null;
+		try {
+			ps = getConnection().prepareStatement(sql);
+			ps.setString(1, newCatName.trim());
+			ps.setString(2, catName.trim());
+			ps.setString(3, treeName.trim());
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				ps.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 }
