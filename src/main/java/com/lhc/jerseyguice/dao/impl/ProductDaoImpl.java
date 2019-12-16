@@ -183,4 +183,50 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		return map;
 	}
 
+	@Override
+	public List search(String keyword, String page) {
+		StringBuilder sql = new StringBuilder("select p.name, p.image,p.cat_id,p.create_time,p.product_id, ");
+		sql.append("(select MIN(price) from size where product_id = p.product_id) as price, ");
+		sql.append("(select disct_price from size where product_id = p.product_id ");
+		sql.append("and price =  (select MIN(price) from size where product_id = p.product_id) ");
+		sql.append("and expired_time <= ?) as discount ");
+		sql.append("from product p ");
+		sql.append("where p.product_id in (select product_id from thuoctinh where menh like '%"+keyword+"%') LIMIT 12 OFFSET ? ");
+		List<CategoryScreen> list = new ArrayList<CategoryScreen>();
+		PreparedStatement ps = null;
+		try {
+			ps = getConnection().prepareStatement(sql.toString());
+			ps.setString(1, Util.getCurrentDate());
+			ps.setInt(2, (Integer.parseInt(page) - 1) * 12);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				CategoryScreen catScreen = new CategoryScreen();
+				catScreen.setCatId(rs.getInt("cat_id"));
+				catScreen.setName(rs.getString("name"));
+				catScreen.setProductId(rs.getInt("product_id"));
+				catScreen.setPrice(rs.getString("price"));
+				catScreen.setDiscountPrice(rs.getString("discount"));
+				if ((Integer.parseInt(Util.getCurrentDate()) - Integer.parseInt(rs.getString("create_time"))) < 100) {
+					catScreen.setNew(true);
+				} else {
+					catScreen.setNew(false);
+				}
+				catScreen.setImage(rs.getString("image"));
+				list.add(catScreen);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				ps.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return list;
+	}
+
 }

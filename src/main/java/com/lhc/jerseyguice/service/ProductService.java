@@ -157,6 +157,24 @@ public class ProductService {
 		return "203";
 	}
 
+	@GET
+	@Path("/search/{keyword}/{page}")
+	public String search(@PathParam("keyword") String keyword, @PathParam("page") String page) {
+		JSONObject object = new JSONObject();
+		Gson gson = new Gson();
+		List<CategoryScreen> list = dao.search(keyword, page);
+		if (!list.isEmpty()) {
+			list = list.stream().map(item -> {
+				item.setImage(getImagesUrl(item.getImage()).split(";")[0]);
+				return item;
+			}).collect(Collectors.toList());
+			object.put("categoryscreen", list);
+			return gson.toJson(list);
+		}
+
+		return "203";
+	}
+	
 	public String getImagesUrl(String folderId) {
 		List<String> ImagesUrl = new ArrayList<>();
 		org.jsoup.nodes.Document doc = null;
