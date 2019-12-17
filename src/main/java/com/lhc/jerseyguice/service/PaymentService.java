@@ -336,4 +336,42 @@ public class PaymentService {
 
 		return "200";
 	}
+	@PUT
+	@Path("update-payment/{token}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String updatePayment(String content) {
+		Gson gson = new Gson();
+		PaymentScreen paymentScreen = gson.fromJson(content, PaymentScreen.class);
+		Payment payment = new Payment();
+		List<Cart> carts = new ArrayList<>();
+		payment = gson.fromJson(content, Payment.class);
+		carts = gson.fromJson(content, ArrayList.class);
+		
+			int totalBeforePromotion = 0;
+			for (Cart cart : carts) {
+				if (cart.getDisct_price() != 0 && cart.getPrice() >= cart.getDisct_price()) {
+					totalBeforePromotion += cart.getAmount() * cart.getDisct_price();
+				} else {
+					totalBeforePromotion += cart.getAmount() * cart.getPrice();
+				}
+			}
+			payment.setSum(new Double(totalBeforePromotion));
+			payment.setPromotion(new Double(payment.getTotal() - totalBeforePromotion));
+			payment.setTotal(payment.getTotal() + payment.getShipfee());
+
+			dao.updateByInputKey(payment,Arrays.asList("payment_id"));
+			for (Cart cart : carts) {
+				if (cart.getAmount() != 0) {
+					try {
+						dao.updateByInputKey(cart, Arrays.asList("user_id","product_id","payment_id"));
+					} catch (Exception e) {
+						// TODO: handle exception
+						dao.add(cart);
+					}
+				}
+			}
+
+		return "200";
+	}
 }

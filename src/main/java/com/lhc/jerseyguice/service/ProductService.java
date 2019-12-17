@@ -453,6 +453,41 @@ public class ProductService {
 	}
 
 	@GET
+	@Path("getProductByCode/{code}/{token}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getByCode(@PathParam("code") String code,@PathParam("token") String token) {
+		Size size = new Size();
+		size.setCode(code);
+		Gson gson = new Gson();
+		Claims claims = JWTUtil.decodeJWT(token);
+		if (claims.getIssuer().equals("LienHoaCac")) {
+			List<Size> list = dao.findByKey(size); 
+			if (!list.isEmpty()) {
+				Cart cart = new Cart();
+				cart.setCode(list.get(0).getCode());
+				if (list.get(0).getExpired_time() >= Integer.parseInt(Util.getCurrentDate())) {
+					cart.setDisct_price(list.get(0).getDisct_price());
+				} else {
+					cart.setDisct_price(0.0);
+				}
+				cart.setAmount(1);
+				cart.setPrice(list.get(0).getPrice());
+				cart.setProduct_id(list.get(0).getProduct_id());
+				cart.setSize(list.get(0).getSize());
+				Product product = new Product();
+				product.setProduct_id(list.get(0).getProduct_id());
+				List<Product> products = dao.findByKey(product);
+				cart.setName(products.get(0).getName());
+				return gson.toJson(cart);
+			} else {
+				return null;
+			}
+		} 
+		return null;
+	}
+	
+	@GET
 	@Path("get-cart/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
