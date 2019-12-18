@@ -46,6 +46,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.appengine.repackaged.com.google.gson.JsonObject;
 import com.google.appengine.repackaged.com.google.gson.JsonParser;
+import com.google.appengine.repackaged.com.google.gson.reflect.TypeToken;
+import com.google.appengine.repackaged.com.google.protobuf.Type;
 import com.google.inject.servlet.RequestParameters;
 import com.lhc.jerseyguice.dao.CartDao;
 import com.lhc.jerseyguice.dao.PaymentDao;
@@ -54,6 +56,7 @@ import com.lhc.jerseyguice.jwt.JWTUtil;
 import com.lhc.jerseyguice.model.Cart;
 import com.lhc.jerseyguice.model.Category;
 import com.lhc.jerseyguice.model.Payment;
+import com.lhc.jerseyguice.model.Product;
 import com.lhc.jerseyguice.model.Settingshop;
 import com.lhc.jerseyguice.model.Size;
 import com.lhc.jerseyguice.model.Treefolder;
@@ -130,10 +133,10 @@ public class PaymentService {
 	}
 
 	@GET
-	@Path("check/voucher/{voucher}")
+	@Path("check/voucher/{voucher}/{sum}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String checkVoucher(@PathParam("voucher") String voucher) {
+	public String checkVoucher(@PathParam("voucher") String voucher, @PathParam("sum") String sum) {
 		Voucher v = new Voucher();
 		v.setCode(voucher.toUpperCase());
 		JSONObject json = new JSONObject();
@@ -146,7 +149,11 @@ public class PaymentService {
 		} else {
 			if (vouchers.get(0).getExpired_date() >= Integer.parseInt(Util.getCurrentDate())
 					&& vouchers.get(0).getEffective_date() <= Integer.parseInt(Util.getCurrentDate())) {
-				json.put("message", vouchers.get(0).getName() + "###" + vouchers.get(0).getPercent());
+				if (Integer.parseInt(sum) < vouchers.get(0).getMin()) {
+					json.put("message", "Voucher chỉ áp dụng cho đơn hàng tối thiểu "+vouchers.get(0).getMin());
+				} else {
+					json.put("message", vouchers.get(0).getName() + "###" + vouchers.get(0).getPercent());
+				}
 				return json.toJSONString();
 			} else {
 				json.put("message", "Voucher đã hết hạn");
@@ -345,8 +352,8 @@ public class PaymentService {
 		PaymentScreen paymentScreen = gson.fromJson(content, PaymentScreen.class);
 		Payment payment = new Payment();
 		List<Cart> carts = new ArrayList<>();
-		payment = gson.fromJson(content, Payment.class);
-		carts = gson.fromJson(content, ArrayList.class);
+		payment = (Payment) dao.parseFromJSONToObject(content, payment);
+		carts =  dao.parseFromJSONToListOfObject(content, new Cart());
 		
 			int totalBeforePromotion = 0;
 			for (Cart cart : carts) {
