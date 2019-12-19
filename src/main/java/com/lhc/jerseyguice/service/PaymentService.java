@@ -43,6 +43,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.appengine.repackaged.com.google.api.client.util.Strings;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.appengine.repackaged.com.google.gson.JsonObject;
 import com.google.appengine.repackaged.com.google.gson.JsonParser;
@@ -226,18 +227,19 @@ public class PaymentService {
 				payment.setPay_type(paymentScreen.getType());
 				payment.setPhone(paymentScreen.getPhone());
 				payment.setSum(new Double(totalBeforePromotion));
-				payment.setPromotion(new Double(paymentScreen.getTotal() - totalBeforePromotion));
 				payment.setShip(paymentScreen.getShip());
 				payment.setShipfee(paymentScreen.getShipfee().intValue());
 				payment.setStatus_id(1);
 				payment.setTitle(paymentScreen.getTitle());
-				payment.setTotal(paymentScreen.getTotal() + paymentScreen.getShipfee());
 				payment.setUser_id(Integer.parseInt(claims.getId()));
 				payment.setVoucher(paymentScreen.getVoucher());
 				payment.setTinhthanh(paymentScreen.getTinhthanh());
 				payment.setQuanhuyen(paymentScreen.getQuanhuyen());
 				payment.setHinhthuc(paymentScreen.getHinhthuc());
 
+				payment.setPromotion(Double.valueOf(getVoucherPromotion(payment.getVoucher(), payment.getSum())));
+				payment.setTotal(new Double(totalBeforePromotion + payment.getShipfee()) - payment.getPromotion());
+				
 				String paymentId = dao.addThenReturnId(payment);
 				for (Cart cart : paymentScreen.getCarts()) {
 					if (cart.getAmount() != 0) {
@@ -280,6 +282,9 @@ public class PaymentService {
 			payment.setQuanhuyen(paymentScreen.getQuanhuyen());
 			payment.setHinhthuc(paymentScreen.getHinhthuc());
 
+			payment.setPromotion(Double.valueOf(getVoucherPromotion(payment.getVoucher(), payment.getSum())));
+			payment.setTotal(new Double(totalBeforePromotion + payment.getShipfee()) - payment.getPromotion());
+			
 			String paymentId = dao.addThenReturnId(payment);
 			for (Cart cart : paymentScreen.getCarts()) {
 				if (cart.getAmount() != 0) {
@@ -321,18 +326,19 @@ public class PaymentService {
 			payment.setPay_type(paymentScreen.getType());
 			payment.setPhone(paymentScreen.getPhone());
 			payment.setSum(new Double(totalBeforePromotion));
-			payment.setPromotion(new Double(paymentScreen.getTotal() - totalBeforePromotion));
 			payment.setShip(paymentScreen.getShip());
 			payment.setShipfee(paymentScreen.getShipfee().intValue());
 			payment.setStatus_id(1);
 			payment.setTitle(paymentScreen.getTitle());
-			payment.setTotal(paymentScreen.getTotal() + paymentScreen.getShipfee());
 			payment.setUser_id(paymentScreen.getUserId());
 			payment.setVoucher(paymentScreen.getVoucher());
 			payment.setTinhthanh(paymentScreen.getTinhthanh());
 			payment.setQuanhuyen(paymentScreen.getQuanhuyen());
 			payment.setHinhthuc(paymentScreen.getHinhthuc());
-
+			
+			payment.setPromotion(Double.valueOf(getVoucherPromotion(payment.getVoucher(), payment.getSum())));
+			payment.setTotal(new Double(totalBeforePromotion + payment.getShipfee()) - payment.getPromotion());
+			
 			String paymentId = dao.addThenReturnId(payment);
 			for (Cart cart : paymentScreen.getCarts()) {
 				if (cart.getAmount() != 0) {
@@ -364,8 +370,8 @@ public class PaymentService {
 				}
 			}
 			payment.setSum(new Double(totalBeforePromotion));
-			payment.setPromotion(new Double(payment.getTotal() - totalBeforePromotion));
-			payment.setTotal(payment.getTotal() + payment.getShipfee());
+			payment.setPromotion(Double.valueOf(getVoucherPromotion(payment.getVoucher(), payment.getSum())));
+			payment.setTotal(new Double(totalBeforePromotion + payment.getShipfee()) - payment.getPromotion());
 
 			dao.updateByInputKey(payment,Arrays.asList("payment_id"));
 			for (Cart cart : carts) {
@@ -380,5 +386,31 @@ public class PaymentService {
 			}
 
 		return "200";
+	}
+	
+	private int getVoucherPromotion(String voucher, Double total) {
+		if (!Strings.isNullOrEmpty(voucher)) {
+			Voucher v = new Voucher();
+			v.setCode(voucher.toUpperCase());
+			List<Voucher> vouchers = new ArrayList<Voucher>();
+			vouchers = dao.findByKey(v);
+			if (!vouchers.isEmpty()) {
+				if (vouchers.get(0).getExpired_date() >= Integer.parseInt(Util.getCurrentDate())
+						&& vouchers.get(0).getEffective_date() <= Integer.parseInt(Util.getCurrentDate())) {
+					if (total >= vouchers.get(0).getMin()) {
+						int discount = 0;
+						if (vouchers.get(0).getPercent() <= 100) {
+							discount = total.intValue()*vouchers.get(0).getPercent()/100;
+						} else {
+							discount = vouchers.get(0).getPercent();
+						}
+						return discount;
+					}
+					
+				}
+			} 
+		}
+		
+		return 0;
 	}
 }
