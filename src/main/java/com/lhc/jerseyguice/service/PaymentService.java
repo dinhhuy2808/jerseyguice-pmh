@@ -377,7 +377,7 @@ public class PaymentService {
 			for (Cart cart : carts) {
 				if (cart.getAmount() != 0) {
 					try {
-						dao.updateByInputKey(cart, Arrays.asList("user_id","product_id","payment_id"));
+						dao.updateByInputKey(cart, Arrays.asList("user_id","product_id","payment_id","size"));
 					} catch (Exception e) {
 						// TODO: handle exception
 						dao.add(cart);

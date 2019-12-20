@@ -366,6 +366,10 @@ public class ProductService {
 
 			for (Size read : sizes) {
 				read.setProduct_id(product.getProduct_id());
+				if(read.getDisct_price()==null) {
+					read.setDisct_price(0.0);
+					read.setExpired_time(0);
+				}
 				if (dao.updateByInputKey(read, Arrays.asList("product_id", "size")) == 0) {
 					read.setProduct_id(product.getProduct_id());
 					read.setCreate_time(Integer.parseInt(Util.getCurrentDate()));
@@ -552,7 +556,7 @@ public class ProductService {
 	public String update(String content) {
 		Product product = new Product();
 		Gson gson = new Gson();
-		gson.fromJson(content, Product.class);
+//		gson.fromJson(content, Product.class);
 		product = (Product) dao.parseFromJSONToObject(content, product);
 		final AtomicInteger atomicInteger = new AtomicInteger(0);
 		Collection<String> result = product.getDescription().chars().mapToObj(c -> String.valueOf((char) c))
