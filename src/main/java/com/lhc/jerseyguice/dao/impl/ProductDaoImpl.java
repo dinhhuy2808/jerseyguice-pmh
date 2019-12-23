@@ -228,5 +228,49 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		}
 		return list;
 	}
+	@Override
+	public List<CategoryScreen> getListHotProducts() {
+		StringBuilder sql = new StringBuilder("select p.name, p.image,p.cat_id,p.create_time,p.product_id, ");
+		sql.append("(select MIN(price) from size where product_id = p.product_id) as price, ");
+		sql.append("(select disct_price from size where product_id = p.product_id ");
+		sql.append("and price =  (select MIN(price) from size where product_id = p.product_id) ");
+		sql.append("and expired_time <= ?) as discount ");
+		sql.append("from product p ");
+		sql.append("order by p.create_time desc LIMIT 12");
+		List<CategoryScreen> list = new ArrayList<CategoryScreen>();
+		PreparedStatement ps = null;
+		try {
+			ps = getConnection().prepareStatement(sql.toString());
+			ps.setString(1, Util.getCurrentDate());
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				CategoryScreen product = new CategoryScreen();
+				product.setCatId(rs.getInt("cat_id"));
+				product.setName(rs.getString("name"));
+				product.setProductId(rs.getInt("product_id"));
+				product.setPrice(rs.getString("price"));
+				product.setDiscountPrice(rs.getString("discount"));
+				if ((Integer.parseInt(Util.getCurrentDate()) - Integer.parseInt(rs.getString("create_time"))) < 100) {
+					product.setNew(true);
+				} else {
+					product.setNew(false);
+				}
+				product.setImage(rs.getString("image"));
+				list.add(product);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				ps.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return list;
+	}
 
 }

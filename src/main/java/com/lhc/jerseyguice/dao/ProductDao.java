@@ -12,4 +12,5 @@ public interface ProductDao<T> extends Dao<T> {
 	Map<String,List<Cart>> getCartBy(String userId);
 	Map<String,List<Cart>> getCartBy(String[] cardDetail);
 	List<CategoryScreen> search(String keyword, String page);
+	List<CategoryScreen> getListHotProducts();
 }

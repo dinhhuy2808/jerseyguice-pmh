@@ -324,6 +324,45 @@ public class ProductService {
 	}
 
 	@POST
+	@Path("DV/{catName}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String createDV(String content, @Context HttpServletResponse response, @Context HttpServletRequest request,
+			@PathParam("catName") String catName) {
+		response.addHeader("Access-Control-Allow-Origin", "*");
+		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
+		Category cat = new Category();
+		cat.setCat_name(catName.replace("-", " "));
+		List<Category> cats = dao.findByKey(cat);
+		if (cats.isEmpty()) {
+			return "203";
+		} else {
+			Product product = new Product();
+			product = (Product) dao.parseFromJSONToObject(content, product);
+			product.setCat_id(cats.get(0).getCat_id());
+			final AtomicInteger atomicInteger = new AtomicInteger(0);
+			Collection<String> result = product.getDescription().chars().mapToObj(c -> String.valueOf((char) c))
+					.collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000, Collectors.joining()))
+					.values();
+			String descriptionGeneratedId = "";
+			for (String read : result) {
+				Description description = new Description();
+				description.setDescription(read);
+				descriptionGeneratedId += dao.addThenReturnId(description) + ",";
+			}
+			product.setDescription(descriptionGeneratedId);
+			product.setCreate_time(Integer.parseInt(Util.getCurrentDate()));
+			Thuoctinh thuoctinh = new Thuoctinh();
+			thuoctinh = (Thuoctinh) dao.parseFromJSONToObject(content, thuoctinh);
+			String generatedProductId = dao.addThenReturnId(product);
+			thuoctinh.setProduct_id(Integer.parseInt(generatedProductId));
+			dao.add(thuoctinh);
+		}
+
+		return "200";
+	}
+	
+	@POST
 	@Path("edit/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
@@ -577,5 +616,23 @@ public class ProductService {
 		conditions.add("product_id");
 		dao.updateByInputKey(product, conditions);
 		return "200";
+	}
+	
+	@GET
+	@Path("/get-list-hot-product")
+	public String getListHotProduct() {
+		JSONObject object = new JSONObject();
+		Gson gson = new Gson();
+		List<CategoryScreen> list = dao.getListHotProducts();
+		if(!list.isEmpty()){
+			list = list.stream().map(item -> {
+				item.setImage(getImagesUrl(item.getImage()).split(";")[0]);
+				return item;
+			}).collect(Collectors.toList());
+			object.put("productOverview", list);
+			return gson.toJson(list);
+		}
+		
+		return "203";
 	}
 }
