@@ -79,6 +79,7 @@ public class TreeFolderService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String create(String content, @PathParam("token") String token) {
+		System.out.println(content);
 		JSONObject json = new JSONObject();
 		JSONParser parser = new JSONParser();
 		Claims claims = JWTUtil.decodeJWT(token);

@@ -183,6 +183,7 @@ public class ProductService {
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			System.out.println("can't fetch from " + folderId);
+			return "";
 		}
 		String title = doc.title();
 		for (Element read : doc.getElementsByTag("script")) {

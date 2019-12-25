@@ -45,7 +45,7 @@ public class Util {
 
 	public static Properties getDbProperties() {
 		 Properties prop = new Properties();
-		 try (InputStream input = new FileInputStream(System.getProperties().get("user.dir")+"/"+"src\\main\\java\\com\\lhc\\jerseyguice\\resource\\db.properties")) {
+		 try (InputStream input = new FileInputStream(System.getProperties().get("user.dir")+"/"+"src/main/java/com/lhc/jerseyguice/resource/db.properties")) {
 
 	            // load a properties file
 	            prop.load(input);
