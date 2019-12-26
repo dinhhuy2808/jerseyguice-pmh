@@ -107,7 +107,7 @@ public class PaymentService {
 		return null;
 	}
 
-	@POST
+	@PUT
 	@Path("checkout-not-login")
 	public PaymentScreen checkoutNotLogin(String cartDetail) {
 		Cart cart = new Cart();
@@ -200,7 +200,7 @@ public class PaymentService {
 		return dao.findByKey(payment);
 	}
 
-	@POST
+	@PUT
 	@Path("{token}/{isLogIn}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
@@ -302,7 +302,7 @@ public class PaymentService {
 		return "200";
 	}
 
-	@POST
+	@PUT
 	@Path("create-without-login")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)

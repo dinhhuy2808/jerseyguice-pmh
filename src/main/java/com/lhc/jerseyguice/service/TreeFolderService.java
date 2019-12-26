@@ -74,7 +74,7 @@ public class TreeFolderService {
 	}
 	
 
-	@POST
+	@PUT
 	@Path("{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
@@ -127,6 +127,7 @@ public class TreeFolderService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String updateSettingShop(String content,@PathParam("token") String token) {
+		System.out.println(content);
 		Claims claims = JWTUtil.decodeJWT(token);
 		if(JWTUtil.isValidAdminUser(claims)){
 			Settingshop setting = new Settingshop();
@@ -149,15 +150,6 @@ public class TreeFolderService {
 		return "200";
 	}
 	
-	@PUT
-	@Path("{id}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.TEXT_PLAIN)
-	public String update(Treefolder treefolder) {
-		dao.updateByKey(treefolder);
-
-		return "200";
-	}
 	@GET
 	@Path("check-cat-name/{name}/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)

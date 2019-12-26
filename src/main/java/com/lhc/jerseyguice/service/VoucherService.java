@@ -103,7 +103,7 @@ public class VoucherService {
 		return "203";
 	}
 	
-	@POST
+	@PUT
 	@Path("{token}")
 	public String addVoucher(@PathParam("token") String token, String content) {
 		Claims claims = JWTUtil.decodeJWT(token);
@@ -122,7 +122,7 @@ public class VoucherService {
 	}
 	
 	@PUT
-	@Path("{token}")
+	@Path("update/{token}")
 	public String updateVoucher(@PathParam("token") String token, String content) {
 		Claims claims = JWTUtil.decodeJWT(token);
 		Type listType = new TypeToken<ArrayList<Voucher>>(){}.getType();
@@ -136,7 +136,7 @@ public class VoucherService {
 		}
 		return null;
 	}
-	@POST
+	@PUT
 	@Path("delete/{id}/{token}")
 	public String deleteVoucher(@PathParam("token") String token, @PathParam("id") String id) {
 		Claims claims = JWTUtil.decodeJWT(token);

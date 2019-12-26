@@ -219,7 +219,7 @@ public class ProductService {
 		return String.join(";", ImagesUrl);
 	}
 
-	@POST
+	@PUT
 	@Path("/image")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public String uploadPdfFile(@FormDataParam("image") InputStream uploadedInputStream,
@@ -278,7 +278,7 @@ public class ProductService {
 
 	}
 
-	@POST
+	@PUT
 	@Path("/{catName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
@@ -324,7 +324,7 @@ public class ProductService {
 		return "200";
 	}
 
-	@POST
+	@PUT
 	@Path("DV/{catName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
@@ -363,7 +363,7 @@ public class ProductService {
 		return "200";
 	}
 	
-	@POST
+	@PUT
 	@Path("edit/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
@@ -568,7 +568,7 @@ public class ProductService {
 		return null;
 	}
 
-	@POST
+	@PUT
 	@Path("get-cart-detail-not-login")
 	public Map<String, List<Cart>> getCartDetailNotLogin(String cartInfo,
 			@Context HttpServletResponse response) {
@@ -589,35 +589,6 @@ public class ProductService {
 		return "200";
 	}
 
-	@PUT
-	@Path("{id}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.TEXT_PLAIN)
-	public String update(String content) {
-		Product product = new Product();
-		Gson gson = new Gson();
-//		gson.fromJson(content, Product.class);
-		product = (Product) dao.parseFromJSONToObject(content, product);
-		final AtomicInteger atomicInteger = new AtomicInteger(0);
-		Collection<String> result = product.getDescription().chars().mapToObj(c -> String.valueOf((char) c))
-				.collect(Collectors.groupingBy(c -> atomicInteger.getAndIncrement() / 2000, Collectors.joining()))
-				.values();
-		String descriptionGeneratedId = "";
-		for (String read : result) {
-			Description description = new Description();
-			description.setDescription(read);
-			descriptionGeneratedId += dao.addThenReturnId(description) + ",";
-		}
-		product.setDescription(descriptionGeneratedId);
-		Thuoctinh thuoctinh = new Thuoctinh();
-		thuoctinh = (Thuoctinh) dao.parseFromJSONToObject(content, thuoctinh);
-		List<Size> sizes = dao.parseFromJSONToListOfObject(content, new Size());
-
-		List<String> conditions = new ArrayList<>();
-		conditions.add("product_id");
-		dao.updateByInputKey(product, conditions);
-		return "200";
-	}
 	
 	@GET
 	@Path("/get-list-hot-product")

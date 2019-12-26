@@ -131,7 +131,7 @@ public class UserService {
 		return false;
 	}
 	
-	@POST
+	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String create(String content) {
@@ -157,7 +157,7 @@ public class UserService {
 		return null;
 	}
 
-	@POST
+	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("login")
 	@Produces(MediaType.APPLICATION_JSON)
