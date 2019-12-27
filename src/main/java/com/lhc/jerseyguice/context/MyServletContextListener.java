@@ -72,8 +72,8 @@ import com.lhc.jerseyguice.dao.impl.WishlistDaoImpl;
 
 import at.aberger.jerseyguice.config.RestServletModule;
 
-public class MyServletContextListener extends GuiceServletContextListener {
-	@Override
+public class MyServletContextListener{
+	
 	protected Injector getInjector() {
 	    return Guice.createInjector(new RestServletModule() {
 			@Override

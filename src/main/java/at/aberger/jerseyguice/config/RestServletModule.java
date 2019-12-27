@@ -108,7 +108,7 @@ class GuiceResourceConfig extends ResourceConfig {
 			public void onShutdown(Container container) {
 			}		
 		});
-		register(MultiPartFeature.class);
+		register(new MultiPartFeature());
 
 	}
 }
