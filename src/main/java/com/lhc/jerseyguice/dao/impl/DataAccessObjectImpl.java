@@ -70,7 +70,7 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 				Class.forName("com.mysql.jdbc.Driver");
 				connection = DriverManager.getConnection(
 						"jdbc:mysql://localhost:3306/"+	"pmh"+"?serverTimezone=UTC&useLegacyDatetimeCode=false&useUnicode=true&characterEncoding=UTF-8",
-						"root", "9203140huy");
+						"root", "");
 			} catch (ClassNotFoundException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
