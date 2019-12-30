@@ -69,8 +69,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 			try {
 				Class.forName("com.mysql.jdbc.Driver");
 				connection = DriverManager.getConnection(
-						"jdbc:mysql://localhost:3306/"+	Util.getDbProperties().getProperty("db.schema")+"?serverTimezone=UTC&useLegacyDatetimeCode=false&useUnicode=true&characterEncoding=UTF-8",
-						Util.getDbProperties().getProperty("db.user"), 	Util.getDbProperties().getProperty("db.password"));
+						"jdbc:mysql://localhost:3306/"+	"pmh"+"?serverTimezone=UTC&useLegacyDatetimeCode=false&useUnicode=true&characterEncoding=UTF-8",
+						"root", "9203140huy");
 			} catch (ClassNotFoundException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -82,14 +82,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 	@Override
 	public List<?> findByKey(Object t) {
-		String sql = "SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t);
-		try {
-			sql = new String(sql.getBytes(),"UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		PreparedStatement ps = getPreparedStatement(sql);
+		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t));
+		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
 		try {
 			ResultSet rs = ps.executeQuery();
@@ -114,14 +108,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 	}
 	@Override
 	public List<?> findByGivenKey(Object t,String key) {
-		String sql = "SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t,Arrays.asList(key.split(",")));
-		try {
-			sql = new String(sql.getBytes(),"UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		PreparedStatement ps = getPreparedStatement(sql);
+		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t,Arrays.asList(key.split(","))));
+		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
 		try {
 			ResultSet rs = ps.executeQuery();
@@ -146,18 +134,12 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 	}
 	@Override
 	public String addThenReturnId(Object t) {
-		String sql = "INSERT INTO " + t.getClass().getSimpleName() + " ( " + getListOfFieldWithoutKey(t)
-				+ " ) VALUES ( " + getListOfValueWithoutKey(t) + " )";
-		try {
-			sql = new String(sql.getBytes(),"UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		PreparedStatement ps = getPreparedStatement(sql);
+		StringBuilder sql = new StringBuilder("INSERT INTO " + t.getClass().getSimpleName() + " ( " + getListOfFieldWithoutKey(t)
+		+ " ) VALUES ( " + getListOfValueWithoutKey(t) + " )");
+		PreparedStatement ps = getPreparedStatement(sql.toString());
 		String key = "";
 		try {
-			ps.executeUpdate(sql,Statement.RETURN_GENERATED_KEYS);
+			ps.executeUpdate(sql.toString(),Statement.RETURN_GENERATED_KEYS);
 			ResultSet rs = ps.getGeneratedKeys();
 			if (rs.next()) {
 			    key = rs.getString(1);
@@ -181,15 +163,9 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 	}
 	@Override
 	public boolean add(Object t) {
-		String sql = "INSERT INTO " + t.getClass().getSimpleName() + " ( " + getListOfFieldWithoutKey(t)
-				+ " ) VALUES ( " + getListOfValueWithoutKey(t) + " )";
-		try {
-			sql = new String(sql.getBytes(),"UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		PreparedStatement ps = getPreparedStatement(sql);
+		StringBuilder sql = new StringBuilder("INSERT INTO " + t.getClass().getSimpleName() + " ( " + getListOfFieldWithoutKey(t)
+		+ " ) VALUES ( " + getListOfValueWithoutKey(t) + " )");
+		PreparedStatement ps = getPreparedStatement(sql.toString());
 		try {
 			ps.executeUpdate();
 
@@ -210,10 +186,10 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 	}
 	@Override
 	public boolean deleteByKey(Object t) {
-		String sql = "DELETE FROM " + t.getClass().getSimpleName() + " WHERE ";
+		StringBuilder sql = new StringBuilder("DELETE FROM " + t.getClass().getSimpleName() + " WHERE ");
 		Class targetClass = t.getClass();
 
-		PreparedStatement ps = getPreparedStatement(sql + String.join(" AND ", getKeyFieldsEqualValue(t)));
+		PreparedStatement ps = getPreparedStatement(sql.toString() + String.join(" AND ", getKeyFieldsEqualValue(t)));
 		try {
 			ps.executeUpdate();
 
@@ -234,12 +210,12 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 	}
 	@Override
 	public boolean updateByKey(Object t) {
-		String sql = "UPDATE " + t.getClass().getSimpleName() + " SET "
+		StringBuilder sql = new StringBuilder("UPDATE " + t.getClass().getSimpleName() + " SET "
 				+ String.join(" , ", getNonKeyFieldsEqualValue(t)) + " WHERE "
-				+ String.join(" , ", getKeyFieldsEqualValue(t));
+				+ String.join(" , ", getKeyFieldsEqualValue(t)));
 		Class targetClass = t.getClass();
 
-		PreparedStatement ps = getPreparedStatement(sql + String.join(" AND ", getKeyFieldsEqualValue(t)));
+		PreparedStatement ps = getPreparedStatement(sql.toString() + String.join(" AND ", getKeyFieldsEqualValue(t)));
 		try {
 			ps.executeUpdate();
 
@@ -696,13 +672,13 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 	@Override
 	public Integer updateByInputKey(Object t, List keys) {
-		String sql = "UPDATE " + t.getClass().getSimpleName() + " SET "
-				+ String.join(" , ", getNonKeyFieldsEqualValue(t)) ;
+		StringBuilder sql = new StringBuilder("UPDATE " + t.getClass().getSimpleName() + " SET "
+				+ String.join(" , ", getNonKeyFieldsEqualValue(t))) ;
 		List<String> newList = (List<String>) keys.stream().map(key -> String.valueOf(key).toLowerCase()).collect(Collectors.toList());
-		sql += getSqlQueryForCondition(t, newList);
+		sql.append(getSqlQueryForCondition(t, newList)) ;
 		Class targetClass = t.getClass();
 		int result = 0;
-		PreparedStatement ps = getPreparedStatement(sql);
+		PreparedStatement ps = getPreparedStatement(sql.toString());
 		try {
 			result = ps.executeUpdate();
 
@@ -743,14 +719,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 	@Override
 	public List findByKeySortBy(Object t, String sort) {
 
-		String sql = "SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t) + " ORDER BY " + sort;
-		try {
-			sql = new String(sql.getBytes(),"UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		PreparedStatement ps = getPreparedStatement(sql);
+		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t) + " ORDER BY " + sort);
+		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
 		try {
 			ResultSet rs = ps.executeQuery();
@@ -777,14 +747,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 	@Override
 	public List findByGivenKeySortBy(Object t, String key, String sort) {
-		String sql = "SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t,Arrays.asList(key.split(","))) + " ORDER BY " + sort;
-		try {
-			sql = new String(sql.getBytes(),"UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		PreparedStatement ps = getPreparedStatement(sql);
+		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t,Arrays.asList(key.split(","))) + " ORDER BY " + sort);
+		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
 		try {
 			ResultSet rs = ps.executeQuery();

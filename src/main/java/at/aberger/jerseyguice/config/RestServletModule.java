@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.hk2.api.ServiceLocator;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
@@ -108,7 +107,6 @@ class GuiceResourceConfig extends ResourceConfig {
 			public void onShutdown(Container container) {
 			}		
 		});
-		register(new MultiPartFeature());
 
 	}
 }

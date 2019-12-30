@@ -43,6 +43,7 @@ import org.json.simple.parser.ParseException;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.appengine.repackaged.com.google.gson.JsonObject;
 import com.lhc.jerseyguice.dao.TreeFolderDao;
+import com.lhc.jerseyguice.dao.impl.TreeFolderDaoImpl;
 import com.lhc.jerseyguice.jwt.JWTUtil;
 import com.lhc.jerseyguice.model.Category;
 import com.lhc.jerseyguice.model.Settingshop;
@@ -54,23 +55,27 @@ import io.jsonwebtoken.Claims;
 @Produces(MediaType.APPLICATION_JSON)
 public class TreeFolderService {
 
-	@Inject
-	TreeFolderDao dao;
+	TreeFolderDao dao = new TreeFolderDaoImpl();
 
 	@GET
-	public Map<String, List<String>> getTreefolder(@Context HttpServletResponse response) {
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getTreefolder(@Context HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
-		return dao.getTreefolderDetail();
+		Gson gson = new Gson();
+		
+		return gson.toJson(dao.getTreefolderDetail());
 	}
 
 	@GET
 	@Path("get-setting-shop")
-	public Settingshop getSettingShop(@Context HttpServletResponse response) {
+	public String getSettingShop(@Context HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		Settingshop settingshop = new Settingshop();
 		settingshop.setId(0);
 		List<Settingshop> list = dao.findByKey(settingshop);
-		return list.get(0);
+		Gson gson = new Gson();
+		return gson.toJson(list.get(0));
 	}
 	
 

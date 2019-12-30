@@ -5,11 +5,16 @@ import java.util.EnumSet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ServerProperties;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import com.google.inject.Stage;
 import com.google.inject.servlet.GuiceFilter;
+import com.google.inject.servlet.GuiceServletContextListener;
 import com.lhc.jerseyguice.context.HelloWorldServlet;
 import com.lhc.jerseyguice.context.MyServletContextListener;
 import com.lhc.jerseyguice.context.WelcomeTexter;
@@ -66,53 +71,27 @@ import at.aberger.jerseyguice.config.RestServletModule;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
-        Guice.createInjector(
-            new RestServletModule() {
-				
-				@Override
-				protected void configureServlets() {
-					bind(WelcomeTexter.class);
-					bind(HelloWorldServlet.class).in(Scopes.SINGLETON);
-					serve("/hello").with(HelloWorldServlet.class);
-					rest("/app/*").packages("com.lhc.jerseyguice.service");
-					bind(UserDao.class).to(UserDaoImpl.class);
-					bind(TreeFolderDao.class).to(TreeFolderDaoImpl.class);
-					bind(CanDao.class).to(CanDaoImpl.class);
-					bind(CartDao.class).to(CartDaoImpl.class);
-					bind(CategoryDao.class).to(CategoryDaoImpl.class);
-					bind(ChiDao.class).to(ChiDaoImpl.class);
-					bind(DescriptionDao.class).to(DescriptionDaoImpl.class);
-					bind(DiscountDao.class).to(DiscountDaoImpl.class);
-					bind(ImageDao.class).to(ImageDaoImpl.class);
-					bind(MangDao.class).to(MangDaoImpl.class);
-					bind(NotificationDao.class).to(NotificationDaoImpl.class);
-					bind(PaymentDao.class).to(PaymentDaoImpl.class);
-					bind(PlacesDao.class).to(PlacesDaoImpl.class);
-					bind(ProductDao.class).to(ProductDaoImpl.class);
-					bind(PromotionDao.class).to(PromotionDaoImpl.class);
-					bind(SettingshopDao.class).to(SettingshopDaoImpl.class);
-					bind(SizeDao.class).to(SizeDaoImpl.class);
-					bind(StatusDao.class).to(StatusDaoImpl.class);
-					bind(ThuoctinhDao.class).to(ThuoctinhDaoImpl.class);
-					bind(TypeDao.class).to(TypeDaoImpl.class);
-					bind(VoucherDao.class).to(VoucherDaoImpl.class);
-					bind(WishlistDao.class).to(WishlistDaoImpl.class);
-					bind(AppPhongThuyDao.class).to(AppPhongThuyDaoImpl.class);
-					
-				}
-			}
-        );
-        
-        int port = 5000;
-        Server server = new Server(port);
+	public static void main(String[] args) throws Exception {
+		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		context.setContextPath("/");
+		context.addFilter(GuiceFilter.class, "/*", EnumSet.<javax.servlet.DispatcherType>of(
+				javax.servlet.DispatcherType.REQUEST, javax.servlet.DispatcherType.ASYNC));
+		context.addServlet(DefaultServlet.class, "/");
+		
+		
+		Server jettyServer = new Server(8080);
+		jettyServer.setHandler(context);
+		ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/app/*");
+		jerseyServlet.setInitOrder(0);
+		// Tells the Jersey Servlet which REST service/class to load.
 
-        ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
-        context.addFilter(GuiceFilter.class, "/*", EnumSet.<javax.servlet.DispatcherType>of(javax.servlet.DispatcherType.REQUEST, javax.servlet.DispatcherType.ASYNC));
-        context.addServlet(DefaultServlet.class, "/*");
-        
-        server.start();
+		jerseyServlet.setInitParameter(ServerProperties.PROVIDER_PACKAGES, "com.lhc.jerseyguice.service");
 
-        server.join();
-    }
+		try {
+			jettyServer.start();
+			jettyServer.join();
+		} finally {
+			jettyServer.destroy();
+		}
+	}
 }

@@ -43,6 +43,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.appengine.repackaged.com.google.api.client.json.Json;
 import com.google.appengine.repackaged.com.google.api.client.util.Strings;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.appengine.repackaged.com.google.gson.JsonObject;
@@ -53,6 +54,8 @@ import com.google.inject.servlet.RequestParameters;
 import com.lhc.jerseyguice.dao.CartDao;
 import com.lhc.jerseyguice.dao.PaymentDao;
 import com.lhc.jerseyguice.dao.TreeFolderDao;
+import com.lhc.jerseyguice.dao.impl.CartDaoImpl;
+import com.lhc.jerseyguice.dao.impl.PaymentDaoImpl;
 import com.lhc.jerseyguice.jwt.JWTUtil;
 import com.lhc.jerseyguice.model.Cart;
 import com.lhc.jerseyguice.model.Category;
@@ -71,15 +74,14 @@ import io.jsonwebtoken.Claims;
 @Produces(MediaType.APPLICATION_JSON)
 public class PaymentService {
 
-	@Inject
-	PaymentDao dao;
+	PaymentDao dao = new PaymentDaoImpl();
 
-	@Inject
-	CartDao cartDao;
+	CartDao cartDao = new CartDaoImpl();
+	Gson gson = new Gson();
 
 	@GET
 	@Path("checkout/{token}")
-	public PaymentScreen checkoutLogin(@PathParam("token") String token) {
+	public String checkoutLogin(@PathParam("token") String token) {
 		Cart cart = new Cart();
 		Claims claims = JWTUtil.decodeJWT(token);
 		if (claims.getIssuer().equals("LienHoaCac")) {
@@ -101,7 +103,7 @@ public class PaymentService {
 					payment.setShipfee(setting.getDefaultShip().doubleValue());
 				}
 				payment.setSettingShop(setting);
-				return payment;
+				return gson.toJson(payment);
 			}
 		}
 		return null;
@@ -109,7 +111,7 @@ public class PaymentService {
 
 	@PUT
 	@Path("checkout-not-login")
-	public PaymentScreen checkoutNotLogin(String cartDetail) {
+	public String checkoutNotLogin(String cartDetail) {
 		Cart cart = new Cart();
 		cart.setPayment_id(0);
 		PaymentScreen payment = dao.getPaymentDetailForCheckOutNotLogin(cartDetail.split("\\|"));
@@ -128,7 +130,7 @@ public class PaymentService {
 				payment.setShipfee(setting.getDefaultShip().doubleValue());
 			}
 			payment.setSettingShop(setting);
-			return payment;
+			return gson.toJson(payment);
 		}
 		return null;
 	}
@@ -166,7 +168,7 @@ public class PaymentService {
 	@GET
 	@Path("get-payment-detail/{token}/{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Map<String, Object> getPaymentDetail(@PathParam("token") String token, @PathParam("id") String paymentId) {
+	public String getPaymentDetail(@PathParam("token") String token, @PathParam("id") String paymentId) {
 		Payment payment = new Payment();
 		payment.setPayment_id(Integer.parseInt(paymentId));
 		payment = (Payment) dao.findByKey(payment).get(0);
@@ -183,7 +185,7 @@ public class PaymentService {
 			map.put("payment", payment);
 			map.put("carts", carts);
 			map.put("setting", setting);
-			return map;
+			return gson.toJson(map);
 		}
 		return null;
 	}
@@ -191,13 +193,13 @@ public class PaymentService {
 	@GET
 	@Path("get-payments/{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public List<Payment> getPayments(@PathParam("token") String token) {
+	public String getPayments(@PathParam("token") String token) {
 		Claims claims = JWTUtil.decodeJWT(token);
 		Payment payment = new Payment();
 		if (JWTUtil.isValidUser(claims)) {
 			payment.setUser_id(Integer.parseInt(claims.getId()));
 		}
-		return dao.findByKey(payment);
+		return gson.toJson(dao.findByKey(payment));
 	}
 
 	@PUT

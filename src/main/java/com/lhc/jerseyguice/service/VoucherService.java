@@ -53,6 +53,8 @@ import com.lhc.jerseyguice.dao.CartDao;
 import com.lhc.jerseyguice.dao.PaymentDao;
 import com.lhc.jerseyguice.dao.TreeFolderDao;
 import com.lhc.jerseyguice.dao.VoucherDao;
+import com.lhc.jerseyguice.dao.impl.CartDaoImpl;
+import com.lhc.jerseyguice.dao.impl.VoucherDaoImpl;
 import com.lhc.jerseyguice.jwt.JWTUtil;
 import com.lhc.jerseyguice.model.Cart;
 import com.lhc.jerseyguice.model.Category;
@@ -70,21 +72,20 @@ import io.jsonwebtoken.Claims;
 @Produces(MediaType.APPLICATION_JSON)
 public class VoucherService {
 
-	@Inject
-	VoucherDao dao;
+	VoucherDao dao = new VoucherDaoImpl();
 	
-	@Inject
-	CartDao cartDao;
+	CartDao cartDao = new CartDaoImpl();
 
 
 	@GET
 	@Path("{token}")
-	public List<Voucher> getVouchers(@PathParam("token") String token) {
+	public String getVouchers(@PathParam("token") String token) {
 		Claims claims = JWTUtil.decodeJWT(token);
 		Voucher voucher = new Voucher();
+		Gson gson = new Gson();
 		if (JWTUtil.isValidAdminUser(claims)){
 			List<Voucher> vouchers = dao.findByKey(voucher);
-			return vouchers;
+			return gson.toJson(vouchers);
 		}
 		return null;
 	}

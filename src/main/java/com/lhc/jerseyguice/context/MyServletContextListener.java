@@ -17,10 +17,12 @@
 
 package com.lhc.jerseyguice.context;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import com.google.inject.servlet.GuiceServletContextListener;
+import com.google.inject.servlet.ServletModule;
 import com.lhc.jerseyguice.dao.TreeFolderDao;
 import com.lhc.jerseyguice.dao.UserDao;
 import com.lhc.jerseyguice.dao.impl.TreeFolderDaoImpl;
@@ -72,43 +74,34 @@ import com.lhc.jerseyguice.dao.impl.WishlistDaoImpl;
 
 import at.aberger.jerseyguice.config.RestServletModule;
 
-public class MyServletContextListener{
-	
-	protected Injector getInjector() {
-	    return Guice.createInjector(new RestServletModule() {
-			@Override
-			protected void configureServlets() {
-				bind(WelcomeTexter.class);
-				bind(HelloWorldServlet.class).in(Scopes.SINGLETON);
-				serve("/hello").with(HelloWorldServlet.class);
-				
-				rest("/app/*").packages("com.lhc.jerseyguice.service");
-				bind(User.class);
-				bind(UserDao.class).to(UserDaoImpl.class);
-				bind(TreeFolderDao.class).to(TreeFolderDaoImpl.class);
-				bind(CanDao.class).to(CanDaoImpl.class);
-				bind(CartDao.class).to(CartDaoImpl.class);
-				bind(CategoryDao.class).to(CategoryDaoImpl.class);
-				bind(ChiDao.class).to(ChiDaoImpl.class);
-				bind(DescriptionDao.class).to(DescriptionDaoImpl.class);
-				bind(DiscountDao.class).to(DiscountDaoImpl.class);
-				bind(ImageDao.class).to(ImageDaoImpl.class);
-				bind(MangDao.class).to(MangDaoImpl.class);
-				bind(NotificationDao.class).to(NotificationDaoImpl.class);
-				bind(PaymentDao.class).to(PaymentDaoImpl.class);
-				bind(PlacesDao.class).to(PlacesDaoImpl.class);
-				bind(ProductDao.class).to(ProductDaoImpl.class);
-				bind(PromotionDao.class).to(PromotionDaoImpl.class);
-				bind(SettingshopDao.class).to(SettingshopDaoImpl.class);
-				bind(SizeDao.class).to(SizeDaoImpl.class);
-				bind(StatusDao.class).to(StatusDaoImpl.class);
-				bind(ThuoctinhDao.class).to(ThuoctinhDaoImpl.class);
-				bind(TypeDao.class).to(TypeDaoImpl.class);
-				bind(VoucherDao.class).to(VoucherDaoImpl.class);
-				bind(WishlistDao.class).to(WishlistDaoImpl.class);
-				bind(AppPhongThuyDao.class).to(AppPhongThuyDaoImpl.class);
-				
-			}
-	    });
+public class MyServletContextListener extends AbstractModule{
+	@Override
+	protected void configure() {
+		bind(WelcomeTexter.class);
+		bind(HelloWorldServlet.class).in(Scopes.SINGLETON);
+		bind(User.class);
+		bind(UserDao.class).to(UserDaoImpl.class);
+		bind(TreeFolderDao.class).to(TreeFolderDaoImpl.class);
+		bind(CanDao.class).to(CanDaoImpl.class);
+		bind(CartDao.class).to(CartDaoImpl.class);
+		bind(CategoryDao.class).to(CategoryDaoImpl.class);
+		bind(ChiDao.class).to(ChiDaoImpl.class);
+		bind(DescriptionDao.class).to(DescriptionDaoImpl.class);
+		bind(DiscountDao.class).to(DiscountDaoImpl.class);
+		bind(ImageDao.class).to(ImageDaoImpl.class);
+		bind(MangDao.class).to(MangDaoImpl.class);
+		bind(NotificationDao.class).to(NotificationDaoImpl.class);
+		bind(PaymentDao.class).to(PaymentDaoImpl.class);
+		bind(PlacesDao.class).to(PlacesDaoImpl.class);
+		bind(ProductDao.class).to(ProductDaoImpl.class);
+		bind(PromotionDao.class).to(PromotionDaoImpl.class);
+		bind(SettingshopDao.class).to(SettingshopDaoImpl.class);
+		bind(SizeDao.class).to(SizeDaoImpl.class);
+		bind(StatusDao.class).to(StatusDaoImpl.class);
+		bind(ThuoctinhDao.class).to(ThuoctinhDaoImpl.class);
+		bind(TypeDao.class).to(TypeDaoImpl.class);
+		bind(VoucherDao.class).to(VoucherDaoImpl.class);
+		bind(WishlistDao.class).to(WishlistDaoImpl.class);
+		bind(AppPhongThuyDao.class).to(AppPhongThuyDaoImpl.class);
 	}
 }

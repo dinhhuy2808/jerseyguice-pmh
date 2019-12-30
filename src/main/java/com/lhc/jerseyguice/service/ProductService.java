@@ -58,9 +58,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.xml.ws.Response;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.MultiPartMediaTypes;
 import org.glassfish.jersey.message.internal.StringBuilderUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -69,18 +66,10 @@ import org.json.simple.parser.ParseException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
-import com.google.appengine.api.search.Document;
 import com.google.appengine.repackaged.com.google.gson.Gson;
-import com.google.appengine.repackaged.com.google.gson.GsonBuilder;
-import com.google.appengine.repackaged.com.google.gson.JsonArray;
-import com.google.appengine.repackaged.com.google.gson.JsonElement;
 import com.google.appengine.repackaged.com.google.gson.JsonObject;
-import com.google.appengine.repackaged.com.google.gson.JsonParser;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.inject.servlet.RequestParameters;
 import com.lhc.jerseyguice.dao.ProductDao;
-import com.lhc.jerseyguice.dao.TreeFolderDao;
+import com.lhc.jerseyguice.dao.impl.ProductDaoImpl;
 import com.lhc.jerseyguice.jwt.JWTUtil;
 import com.lhc.jerseyguice.model.Cart;
 import com.lhc.jerseyguice.model.Category;
@@ -90,7 +79,6 @@ import com.lhc.jerseyguice.model.Size;
 import com.lhc.jerseyguice.model.Thuoctinh;
 import com.lhc.jerseyguice.model.Treefolder;
 import com.lhc.jerseyguice.screenvars.CategoryScreen;
-import com.lhc.jerseyguice.screenvars.ProducScreen;
 import com.lhc.util.Util;
 
 import io.jsonwebtoken.Claims;
@@ -99,12 +87,12 @@ import io.jsonwebtoken.Claims;
 @Produces(MediaType.APPLICATION_JSON)
 public class ProductService {
 
-	@Inject
-	ProductDao dao;
+	ProductDao dao = new ProductDaoImpl();
 
 	@GET
 	@Path("/{product-name}/{purpose}")
 	public String getProduct(@PathParam("product-name") String name,@PathParam("purpose") String purpose) {
+		System.out.println(name + "--" + purpose);
 		JsonObject jsonObject = new JsonObject();
 		Product product = new Product();
 		product.setName(name.replace("-", " "));
@@ -140,6 +128,7 @@ public class ProductService {
 	@GET
 	@Path("/get-by-category/{cat-name}/{page}")
 	public String getProductByCategory(@PathParam("cat-name") String catName, @PathParam("page") String page) {
+		System.out.println(catName);
 		JSONObject object = new JSONObject();
 		Gson gson = new Gson();
 		Category category = new Category();
@@ -217,65 +206,6 @@ public class ProductService {
 
 		}
 		return String.join(";", ImagesUrl);
-	}
-
-	@PUT
-	@Path("/image")
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public String uploadPdfFile(@FormDataParam("image") InputStream uploadedInputStream,
-			@FormDataParam("image") FormDataContentDisposition fileDetail) throws Exception {
-		System.out.println(uploadedInputStream);
-		String UPLOAD_PATH = "";
-		try {
-
-			String body = new BufferedReader(new InputStreamReader(uploadedInputStream, Charsets.UTF_8))
-					.lines()/*
-							 * .filter(line -> {
-							 * 
-							 * return !line.startsWith("Content-Type")&&!line.
-							 * startsWith("------WebKitFormBoundary")&&!line.
-							 * startsWith("Content-Disposition"); })
-							 */.collect(Collectors.joining("\n")).trim();
-			Image image = ImageIO
-					.read(new URL("https://drive.google.com/file/d/1LUutB-ujCPnl0hN4BmvWFtMrt8_dX3_3/view"));
-
-			BufferedImage bi = this.createResizedCopy(image, 180, 180, true);
-			ImageIO.write(bi, "jpg", new File(fileDetail.getFileName()));
-
-		} catch (IOException e) {
-			System.out.println("Error");
-		}
-		return "200";
-	}
-
-	BufferedImage createResizedCopy(Image originalImage, int scaledWidth, int scaledHeight, boolean preserveAlpha) {
-		int imageType = preserveAlpha ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-		BufferedImage scaledBI = new BufferedImage(scaledWidth, scaledHeight, imageType);
-		Graphics2D g = scaledBI.createGraphics();
-		if (preserveAlpha) {
-			g.setComposite(AlphaComposite.Src);
-		}
-		g.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
-		g.dispose();
-		return scaledBI;
-	}
-
-	private static void copyInputStreamToFile(InputStream inputStream, File file) throws IOException {
-
-		try (FileOutputStream outputStream = new FileOutputStream(file)) {
-
-			int read;
-			byte[] bytes = new byte[1024];
-
-			while ((read = inputStream.read(bytes)) != -1) {
-				outputStream.write(bytes, 0, read);
-			}
-
-			// commons-io
-			// IOUtils.copy(inputStream, outputStream);
-
-		}
-
 	}
 
 	@PUT
@@ -554,15 +484,18 @@ public class ProductService {
 
 	@GET
 	@Path("get-cart-detail/{token}")
-	public Map<String, List<Cart>> getCartDetail(@PathParam("token") String token,
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getCartDetail(@PathParam("token") String token,
 			@Context HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
+		Gson gson = new Gson();
 		Cart cart = new Cart();
 		cart.setPayment_id(0);
 		Claims claims = JWTUtil.decodeJWT(token);
 		JsonObject jsonObject = new JsonObject();
 		if (claims.getIssuer().equals("LienHoaCac")) {
-			return dao.getCartBy(claims.getId());
+			return gson.toJson(dao.getCartBy(claims.getId()));
 		}
 		jsonObject.addProperty("message", "203");
 		return null;
@@ -570,13 +503,15 @@ public class ProductService {
 
 	@PUT
 	@Path("get-cart-detail-not-login")
-	public Map<String, List<Cart>> getCartDetailNotLogin(String cartInfo,
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getCartDetailNotLogin(String cartInfo,
 			@Context HttpServletResponse response) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		Cart cart = new Cart();
 		cart.setPayment_id(0);
-		JsonObject jsonObject = new JsonObject();
-		return dao.getCartBy(cartInfo.split("\\|"));
+		Gson gson = new Gson();
+		return gson.toJson(dao.getCartBy(cartInfo.split("\\|")));
 	}
 
 	@DELETE
@@ -592,6 +527,8 @@ public class ProductService {
 	
 	@GET
 	@Path("/get-list-hot-product")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	public String getListHotProduct() {
 		JSONObject object = new JSONObject();
 		Gson gson = new Gson();

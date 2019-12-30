@@ -40,7 +40,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import com.google.appengine.repackaged.com.google.api.client.http.HttpResponse;
 import com.google.appengine.repackaged.com.google.common.base.Strings;
@@ -48,6 +47,7 @@ import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.appengine.repackaged.com.google.gson.JsonObject;
 import com.google.appengine.repackaged.org.apache.commons.codec.binary.StringUtils;
 import com.lhc.jerseyguice.dao.UserDao;
+import com.lhc.jerseyguice.dao.impl.UserDaoImpl;
 import com.lhc.jerseyguice.jwt.JWTUtil;
 import com.lhc.jerseyguice.model.Cart;
 import com.lhc.jerseyguice.model.User;
@@ -58,77 +58,78 @@ import io.jsonwebtoken.Claims;
 @Produces(MediaType.APPLICATION_JSON)
 public class UserService {
 
-	@Inject
-	UserDao dao;
+	UserDao dao = new UserDaoImpl();
 
 	@GET
 	@Path("{token}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public List<User> users(@Context HttpServletResponse response, @PathParam("token") String token) {
+	public String users(@Context HttpServletResponse response, @PathParam("token") String token) {
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		Claims claims = JWTUtil.decodeJWT(token);
+		Gson gson = new Gson();
 		if (JWTUtil.isValidAdminUser(claims)) {
-			return (List<User>) dao.findByKey(new User());
+			return gson.toJson((List<User>) dao.findByKey(new User()));
 		} 
 		return null;
 	}
 	@GET
 	@Path("get-by-phone/{token}/{phone}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public User user( @PathParam("token") String token, @PathParam("phone") String phone) {
+	public String user( @PathParam("token") String token, @PathParam("phone") String phone) {
 		Claims claims = JWTUtil.decodeJWT(token);
 		User user = new User();
 		user.setPhone(phone);
 		List<User> users = dao.findByKey(user);
-		
+		Gson gson = new Gson();
 		if ((!users.isEmpty())
 				&& (JWTUtil.isValidAdminUser(claims)
 						|| (JWTUtil.isValidUser(claims)
 								&& Integer.parseInt(claims.getId()) == users.get(0).getUser_id()))) {
-			return users.get(0);
+			return gson.toJson(users.get(0));
 		}
 		return null;
 	}
 	@GET
 	@Path("{id}")
-	public User user(@PathParam("id") int id) {
+	public String user(@PathParam("id") int id) {
 		User user = new User();
 		user.setUser_id(id);
-		return (User) dao.findByKey(user).get(0);
+		Gson gson = new Gson();
+		return gson.toJson((User) dao.findByKey(user).get(0));
 	}
 
 	@GET
 	@Path("/check/{phone}")
-	public boolean user(@PathParam("phone") String phone) {
+	public String user(@PathParam("phone") String phone) {
 		User user = new User();
 		user.setPhone(phone);
 		if (dao.findByKey(user).size() > 0) {
-			return true;
+			return "true";
 		} else {
-			return false;
+			return "false";
 		}
 	}
 
 	@GET
 	@Path("/check-payment/{phone}")
-	public boolean checkPayment(@PathParam("phone") String phone) {
+	public String checkPayment(@PathParam("phone") String phone) {
 		User user = new User();
 		user.setPhone(phone);
 		List<User> list = dao.findByKey(user);
 		if (list.size() > 0 && !list.get(0).getPassword().equals("")) {
-			return true;
+			return "true";
 		} else {
-			return false;
+			return "false";
 		}
 	}
 	@GET
 	@Path("/isAdmin/{token}")
-	public boolean isAdmin(@PathParam("token") String token) {
+	public String isAdmin(@PathParam("token") String token) {
 		Claims claims = JWTUtil.decodeJWT(token);
 		if(JWTUtil.isValidAdminUser(claims)){
-			return true;
+			return "true";
 		} 
-		return false;
+		return "false";
 	}
 	
 	@PUT
