@@ -124,7 +124,19 @@ public class ProductService {
 		map.put("description", description);
 		return Util.toJSONString(map);
 	}
-
+	@GET
+	@Path("get-all-product/{token}")
+	public String getAllProduct(@PathParam("token") String token) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		if (JWTUtil.isValidAdminUser(claims)) {
+			Product product = new Product();
+			List<Product> products = dao.getAllProduct();
+			Gson gson = new Gson();
+			return gson.toJson(products);
+		} 
+		return "203";
+		
+	}
 	@GET
 	@Path("/get-by-category/{cat-name}/{page}")
 	public String getProductByCategory(@PathParam("cat-name") String catName, @PathParam("page") String page) {

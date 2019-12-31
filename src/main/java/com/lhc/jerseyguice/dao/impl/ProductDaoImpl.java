@@ -235,7 +235,7 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		sql.append("(select disct_price from size where product_id = p.product_id ");
 		sql.append("and price =  (select MIN(price) from size where product_id = p.product_id) ");
 		sql.append("and expired_time <= ?) as discount ");
-		sql.append("from product p ");
+		sql.append("from product p where p.image <> '' ");
 		sql.append("order by p.create_time desc LIMIT 12");
 		List<CategoryScreen> list = new ArrayList<CategoryScreen>();
 		PreparedStatement ps = null;
@@ -272,5 +272,32 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		}
 		return list;
 	}
+	@Override
+	public List getAllProduct() {
 
+		StringBuilder sql = new StringBuilder("select * from product where product_id in (select distinct product_id from size)");
+		PreparedStatement ps = getPreparedStatement(sql.toString());
+		List<Product> results = new ArrayList<>();
+		try {
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+
+				results.add(setToInstane(rs, new Product()));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				ps.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		return results;
+	
+	}
 }

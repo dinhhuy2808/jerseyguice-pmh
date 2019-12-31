@@ -485,7 +485,7 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		return sql.toString() + ";";
 	}
 	
-	private T setToInstane(ResultSet rs, Object t) {
+	protected T setToInstane(ResultSet rs, Object t) {
 		T newT = null;
 		try {
 			newT = (T) t.getClass().newInstance();
