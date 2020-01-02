@@ -79,6 +79,7 @@ import com.lhc.jerseyguice.model.Size;
 import com.lhc.jerseyguice.model.Thuoctinh;
 import com.lhc.jerseyguice.model.Treefolder;
 import com.lhc.jerseyguice.screenvars.CategoryScreen;
+import com.lhc.jerseyguice.screenvars.ProducScreen;
 import com.lhc.util.Util;
 
 import io.jsonwebtoken.Claims;
@@ -116,12 +117,15 @@ public class ProductService {
 		if (purpose.equals("detail")) {
 			product.setImage(getImagesUrl(product.getImage()));
 		}
-		
+		Category cat = new Category();
+		cat.setCat_id(product.getCat_id());
+		cat = (Category)dao.findByKey(cat).get(0);
 		Map<String, Object> map = new HashMap<>();
 		map.put("product", product);
 		map.put("sizes", sizes);
 		map.put("thuoctinh", thuoctinh);
 		map.put("description", description);
+		map.put("catName", cat.getCat_name());
 		return Util.toJSONString(map);
 	}
 	@GET
@@ -130,7 +134,7 @@ public class ProductService {
 		Claims claims = JWTUtil.decodeJWT(token);
 		if (JWTUtil.isValidAdminUser(claims)) {
 			Product product = new Product();
-			List<Product> products = dao.getAllProduct();
+			List<ProducScreen> products = dao.getAllProduct();
 			Gson gson = new Gson();
 			return gson.toJson(products);
 		} 

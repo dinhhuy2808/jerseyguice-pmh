@@ -6,6 +6,7 @@ import java.util.Map;
 import com.lhc.jerseyguice.model.Cart;
 import com.lhc.jerseyguice.model.Product;
 import com.lhc.jerseyguice.screenvars.CategoryScreen;
+import com.lhc.jerseyguice.screenvars.ProducScreen;
 
 public interface ProductDao<T> extends Dao<T> {
 	List<CategoryScreen> getProductByCategoryName(String catName, String page);
@@ -13,5 +14,5 @@ public interface ProductDao<T> extends Dao<T> {
 	Map<String,List<Cart>> getCartBy(String[] cardDetail);
 	List<CategoryScreen> search(String keyword, String page);
 	List<CategoryScreen> getListHotProducts();
-	List<Product> getAllProduct();
+	List<ProducScreen> getAllProduct();
 }

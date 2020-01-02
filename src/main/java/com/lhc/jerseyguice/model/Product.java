@@ -4,10 +4,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.lhc.jerseyguice.annotation.KeyColumn;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
 
 @XmlRootElement
 public class Product {

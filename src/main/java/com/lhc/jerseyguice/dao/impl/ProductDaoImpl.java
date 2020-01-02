@@ -16,6 +16,7 @@ import com.lhc.jerseyguice.model.Cart;
 import com.lhc.jerseyguice.model.Product;
 import com.lhc.jerseyguice.screenvars.CategoryScreen;
 import com.lhc.jerseyguice.screenvars.PaymentScreen;
+import com.lhc.jerseyguice.screenvars.ProducScreen;
 import com.lhc.util.Util;
 
 public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements ProductDao {
@@ -275,15 +276,17 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 	@Override
 	public List getAllProduct() {
 
-		StringBuilder sql = new StringBuilder("select * from product where product_id in (select distinct product_id from size)");
+		StringBuilder sql = new StringBuilder("select s.*,p.name from size s left join product p on s.product_id = p.product_id;");
 		PreparedStatement ps = getPreparedStatement(sql.toString());
-		List<Product> results = new ArrayList<>();
+		List<ProducScreen> results = new ArrayList<>();
 		try {
 			ResultSet rs = ps.executeQuery();
 
 			while (rs.next()) {
 
-				results.add(setToInstane(rs, new Product()));
+				results.add(new ProducScreen(rs.getInt("product_id"), rs.getInt("create_time"), rs.getDouble("price"),
+						rs.getString("size"), rs.getString("code"), rs.getDouble("disct_price"),
+						rs.getInt("expired_time"), rs.getString("info"), rs.getInt("quantity"), rs.getString("name")));
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
