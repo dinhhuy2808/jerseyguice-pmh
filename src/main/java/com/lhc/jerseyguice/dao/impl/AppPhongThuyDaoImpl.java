@@ -23,11 +23,12 @@ public class AppPhongThuyDaoImpl extends DataAccessObjectImpl<AppPhongThuyRespon
 				+ "AND chi.b=? AND mang.id = can.AC + chi.BC;";
 		AppPhongThuyRespone result = new AppPhongThuyRespone();
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql);
 			ps.setInt(1, yearOfBirth % 10);
 			ps.setInt(2, yearOfBirth % 12);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			while (rs.next()){
 				result.setCan(rs.getString("can"));
 				result.setChi(rs.getString("chi"));
@@ -39,6 +40,8 @@ public class AppPhongThuyDaoImpl extends DataAccessObjectImpl<AppPhongThuyRespon
 		} finally {
 			try {
 				ps.close();
+				rs.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

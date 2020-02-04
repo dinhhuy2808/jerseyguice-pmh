@@ -32,6 +32,7 @@ public interface Dao<T>  {
 	 public String addThenReturnId(T t);
 	 public boolean add(T t);
 	 public boolean deleteByKey(T t);
+	 public boolean deleteByGivenValue(T t);
 	 public boolean updateByKey(T t);
 	 public Integer updateByInputKey(T t,List<String> keys);
 	 public T parseFromJSONToObject(String content, Object t);

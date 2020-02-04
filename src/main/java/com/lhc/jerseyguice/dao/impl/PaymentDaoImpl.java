@@ -29,11 +29,12 @@ public class PaymentDaoImpl extends DataAccessObjectImpl<Payment> implements Pay
 		PreparedStatement ps = null;
 		PaymentScreen paymentScreen = new PaymentScreen();
 		int total = 0;
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
 			ps.setInt(2,userId);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			
 			List<Cart> carts = new ArrayList<>();
 			while (rs.next()) {
@@ -70,6 +71,8 @@ public class PaymentDaoImpl extends DataAccessObjectImpl<Payment> implements Pay
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -99,11 +102,12 @@ public class PaymentDaoImpl extends DataAccessObjectImpl<Payment> implements Pay
 		Map<String, List<Cart>> map = new HashMap<String, List<Cart>>();
 		List<Cart> carts = new ArrayList<>();
 		int total = 0;
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
 			// ps.setString(2,userId);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				Cart cart = new Cart();
@@ -144,6 +148,8 @@ public class PaymentDaoImpl extends DataAccessObjectImpl<Payment> implements Pay
 		} finally {
 			try {
 				ps.close();
+				rs.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

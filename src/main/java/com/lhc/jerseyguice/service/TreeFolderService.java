@@ -46,7 +46,11 @@ import com.lhc.jerseyguice.dao.TreeFolderDao;
 import com.lhc.jerseyguice.dao.impl.TreeFolderDaoImpl;
 import com.lhc.jerseyguice.jwt.JWTUtil;
 import com.lhc.jerseyguice.model.Category;
+import com.lhc.jerseyguice.model.Description;
+import com.lhc.jerseyguice.model.Product;
 import com.lhc.jerseyguice.model.Settingshop;
+import com.lhc.jerseyguice.model.Size;
+import com.lhc.jerseyguice.model.Thuoctinh;
 import com.lhc.jerseyguice.model.Treefolder;
 
 import io.jsonwebtoken.Claims;
@@ -203,6 +207,57 @@ public class TreeFolderService {
 			Gson gson = new Gson();
 			tree = gson.fromJson(content, Treefolder.class);
 			dao.updateByInputKey(tree, Arrays.asList("folder_name"));
+		} else {
+			return "203";
+		}
+		return "200";
+	}
+	
+	@GET
+	@Path("delete-cat/{token}/{catName}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String deleteCat(@PathParam("token") String token,@PathParam("catName") String catName) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		if(JWTUtil.isValidAdminUser(claims)){
+			Category cat = new Category();
+			cat.setCat_name(catName.replace("-", " ").trim());
+			List<Category> cats = dao.findByKey(cat);
+			cat = cats.get(0);
+			
+			Product product = new Product();
+			product.setCat_id(cat.getCat_id());
+			List<Product> products = dao.findByKey(product);
+			for (Product read : products) {
+				Size size = new Size();
+				size.setProduct_id(read.getProduct_id());
+				dao.deleteByGivenValue(size);
+				
+				for (String desc : read.getDescription().split(",")) {
+					Description description = new Description();
+					description.setDescription_id(Integer.parseInt(desc));
+					dao.deleteByGivenValue(description);
+				}
+				
+				Thuoctinh thuoctinh = new Thuoctinh();
+				thuoctinh.setProduct_id(read.getProduct_id());
+				dao.deleteByGivenValue(thuoctinh);
+				
+				dao.deleteByKey(read);
+			}
+			
+			dao.deleteByKey(cat);
+			cat.setCat_id(null);
+			cat.setCat_name(null);
+			cat.setImage(null);
+			cats = dao.findByKey(cat);
+			
+			if (cats.size() == 0) {
+				Treefolder tree = new Treefolder();
+				tree.setFolder_id(cat.getFolder_id());
+				dao.deleteByKey(tree);
+			}
+			
 		} else {
 			return "203";
 		}

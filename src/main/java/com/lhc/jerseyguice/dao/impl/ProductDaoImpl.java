@@ -27,17 +27,18 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		sql.append("(select MIN(price) from size where product_id = p.product_id) as price, ");
 		sql.append("(select disct_price from size where product_id = p.product_id ");
 		sql.append("and price =  (select MIN(price) from size where product_id = p.product_id) ");
-		sql.append("and expired_time <= ?) as discount ");
+		sql.append("and expired_time >= ?) as discount ");
 		sql.append("from product p ");
 		sql.append("where p.cat_id = (select cat_id from category where cat_name = ?) LIMIT 12 OFFSET ? ");
 		List<CategoryScreen> list = new ArrayList<CategoryScreen>();
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
 			ps.setString(2, catName.replace("-", " "));
 			ps.setInt(3, (Integer.parseInt(page) - 1) * 12);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				CategoryScreen catScreen = new CategoryScreen();
@@ -60,6 +61,8 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -80,11 +83,12 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		PreparedStatement ps = null;
 		PaymentScreen paymentScreen = new PaymentScreen();
 		Map<String, List<Cart>> map = new HashMap<String, List<Cart>>();
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
 			ps.setString(2, userId);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				Cart cart = new Cart();
@@ -112,6 +116,8 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -138,11 +144,12 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		PreparedStatement ps = null;
 		PaymentScreen paymentScreen = new PaymentScreen();
 		Map<String, List<Cart>> map = new HashMap<String, List<Cart>>();
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
 			// ps.setString(2,userId);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				Cart cart = new Cart();
@@ -176,6 +183,8 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -195,11 +204,12 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		sql.append("where p.product_id in (select product_id from thuoctinh where menh like '%"+keyword+"%') LIMIT 12 OFFSET ? ");
 		List<CategoryScreen> list = new ArrayList<CategoryScreen>();
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
 			ps.setInt(2, (Integer.parseInt(page) - 1) * 12);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				CategoryScreen catScreen = new CategoryScreen();
@@ -222,6 +232,8 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -240,10 +252,11 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		sql.append("order by p.create_time desc LIMIT 12");
 		List<CategoryScreen> list = new ArrayList<CategoryScreen>();
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql.toString());
 			ps.setString(1, Util.getCurrentDate());
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				CategoryScreen product = new CategoryScreen();
@@ -266,6 +279,8 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -279,8 +294,9 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		StringBuilder sql = new StringBuilder("select s.*,p.name from size s left join product p on s.product_id = p.product_id;");
 		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<ProducScreen> results = new ArrayList<>();
+		ResultSet rs = null;
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 
@@ -294,6 +310,8 @@ public class ProductDaoImpl extends DataAccessObjectImpl<Product> implements Pro
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

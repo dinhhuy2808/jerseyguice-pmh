@@ -39,6 +39,7 @@ public class CartDaoImpl extends DataAccessObjectImpl<Cart> implements CartDao {
 		} finally {
 			try {
 				ps.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

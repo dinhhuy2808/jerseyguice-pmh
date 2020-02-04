@@ -120,12 +120,18 @@ public class ProductService {
 		Category cat = new Category();
 		cat.setCat_id(product.getCat_id());
 		cat = (Category)dao.findByKey(cat).get(0);
+		
+		Category cats = new Category();
 		Map<String, Object> map = new HashMap<>();
 		map.put("product", product);
 		map.put("sizes", sizes);
 		map.put("thuoctinh", thuoctinh);
 		map.put("description", description);
 		map.put("catName", cat.getCat_name());
+		if (purpose.equals("edit")) {
+			map.put("cats", dao.findByKey(cats));
+		}
+		
 		return Util.toJSONString(map);
 	}
 	@GET
@@ -202,13 +208,10 @@ public class ProductService {
 				});
 				for (String read2 : list) {
 					try {
-						System.out.println(read2);
 						String url = "https://drive.google.com/uc?export=view&id="
 								+ read2.substring(read2.lastIndexOf("\\x5b\\x22"), read2.lastIndexOf("\\x22"))
 										.replace("\\x5b\\x22", "").replace("\\x22", "");
 
-						System.out.println(url + ";");
-						System.out.println("------------------------");
 						ImagesUrl.add(url);
 					} catch (StringIndexOutOfBoundsException e) {
 						// TODO: handle exception
@@ -530,16 +533,38 @@ public class ProductService {
 		return gson.toJson(dao.getCartBy(cartInfo.split("\\|")));
 	}
 
-	@DELETE
-	@Path("{id}")
+	@GET
+	@Path("/delete-product/{token}/{productName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String delete(Treefolder treefolder) {
-		dao.deleteByKey(treefolder);
-
+	public String getListHotProduct(@PathParam("token") String token,@PathParam("productName") String productName) {
+		Claims claims = JWTUtil.decodeJWT(token);
+		if(JWTUtil.isValidAdminUser(claims)){
+			Product product = new Product();
+			product.setName(productName.replace("-", " ").trim());
+			List<Product> products = dao.findByKey(product);
+			for (Product read : products) {
+				Size size = new Size();
+				size.setProduct_id(read.getProduct_id());
+				dao.deleteByGivenValue(size);
+				
+				for (String desc : read.getDescription().split(",")) {
+					Description description = new Description();
+					description.setDescription_id(Integer.parseInt(desc));
+					dao.deleteByGivenValue(description);
+				}
+				
+				Thuoctinh thuoctinh = new Thuoctinh();
+				thuoctinh.setProduct_id(read.getProduct_id());
+				dao.deleteByGivenValue(thuoctinh);
+				
+				dao.deleteByKey(read);
+			}
+		} else {
+			return "203";
+		}
 		return "200";
 	}
-
 	
 	@GET
 	@Path("/get-list-hot-product")

@@ -79,14 +79,24 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		}
 		return connection;
 	}
-
+	protected static void disconnect() {
+	    if (connection != null) {
+	        try {
+	            connection.close();
+	            connection = null;
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	}
 	@Override
 	public List<?> findByKey(Object t) {
 		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t));
 		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
+		ResultSet rs = null;
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 
@@ -98,6 +108,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		} finally {
 			try {
 				ps.close();
+				rs.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -111,8 +123,9 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t,Arrays.asList(key.split(","))));
 		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
+		ResultSet rs = null;
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 
@@ -124,6 +137,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		} finally {
 			try {
 				ps.close();
+				rs.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -138,9 +153,10 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		+ " ) VALUES ( " + getListOfValueWithoutKey(t) + " )");
 		PreparedStatement ps = getPreparedStatement(sql.toString());
 		String key = "";
+		ResultSet rs = null;
 		try {
 			ps.executeUpdate(sql.toString(),Statement.RETURN_GENERATED_KEYS);
-			ResultSet rs = ps.getGeneratedKeys();
+			rs = ps.getGeneratedKeys();
 			if (rs.next()) {
 			    key = rs.getString(1);
 			    
@@ -154,6 +170,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 			try {
 				ps.close();
+				rs.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -177,6 +195,7 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 			try {
 				ps.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -201,6 +220,32 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 			try {
 				ps.close();
+				disconnect();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return true;
+		}
+	}
+	@Override
+	public boolean deleteByGivenValue(Object t) {
+		StringBuilder sql = new StringBuilder("DELETE FROM " + t.getClass().getSimpleName());
+		Class targetClass = t.getClass();
+
+		PreparedStatement ps = getPreparedStatement(sql.toString() + getSqlQueryForCondition(t));
+		try {
+			ps.executeUpdate();
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} finally {
+
+			try {
+				ps.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -227,6 +272,7 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 			try {
 				ps.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -690,6 +736,7 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 
 			try {
 				ps.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -722,8 +769,9 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t) + " ORDER BY " + sort);
 		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
+		ResultSet rs = null;
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 
@@ -735,6 +783,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		} finally {
 			try {
 				ps.close();
+				rs.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -750,8 +800,9 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		StringBuilder sql = new StringBuilder("SELECT * FROM " + t.getClass().getSimpleName() + getSqlQueryForCondition(t,Arrays.asList(key.split(","))) + " ORDER BY " + sort);
 		PreparedStatement ps = getPreparedStatement(sql.toString());
 		List<T> results = new ArrayList<>();
+		ResultSet rs = null;
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 
@@ -763,6 +814,8 @@ public class DataAccessObjectImpl<T extends Object> implements Dao {
 		} finally {
 			try {
 				ps.close();
+				rs.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

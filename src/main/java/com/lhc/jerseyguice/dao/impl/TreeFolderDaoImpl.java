@@ -39,9 +39,10 @@ public class TreeFolderDaoImpl extends DataAccessObjectImpl<Treefolder> implemen
 		        "(select t.index from treefolder t where t.folder_id = c.folder_id ) as folder_index from category  c group by folder_name order by folder_index asc;\n";
 		Map<String, List<String>> map = new HashMap<String, List<String>>();
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			ps = getConnection().prepareStatement(sql);
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			while (rs.next()){
 				map.put(rs.getString("folder_name"), Arrays.asList(rs.getString("cat_names").split(";")));
 			}
@@ -51,6 +52,8 @@ public class TreeFolderDaoImpl extends DataAccessObjectImpl<Treefolder> implemen
 		} finally {
 			try {
 				ps.close();
+				disconnect();
+				rs.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -75,6 +78,7 @@ public class TreeFolderDaoImpl extends DataAccessObjectImpl<Treefolder> implemen
 		} finally {
 			try {
 				ps.close();
+				disconnect();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
