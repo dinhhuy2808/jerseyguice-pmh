@@ -30,7 +30,7 @@
 		<endpoints.framework.version>2.0.0-beta.7</endpoints.framework.version>
 		<endpoints.management.version>1.0.0-beta.7</endpoints.management.version>
 		<jjwt.version>0.9.1</jjwt.version>
-		<jackson.version>2.7.3</jackson.version>
+		<jackson.version>2.13.4.1</jackson.version>
 		<jetty.version>9.1.5.v20140505</jetty.version>
 		<jersey.version>1.18.1</jersey.version>
 	</properties>
